@@ -1,0 +1,3426 @@
+{
+  "steam_id": "76561198040456533",
+  "total_games": 569,
+  "categories": {
+    "COMPLETED": [
+      {
+        "appid": 3035570,
+        "name": "Assassin's Creed Mirage",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed"
+      },
+      {
+        "appid": 812140,
+        "name": "Assassin's Creed Odyssey",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed"
+      },
+      {
+        "appid": 582160,
+        "name": "Assassin's Creed Origins",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      },
+      {
+        "appid": 311560,
+        "name": "Assassin's Creed Rogue",
+        "confidence": "HIGH",
+        "reason": "Marked as already completed by user"
+      },
+      {
+        "appid": 2208920,
+        "name": "Assassin's Creed Valhalla",
+        "confidence": "HIGH",
+        "reason": "Marked as already completed by user"
+      },
+      {
+        "appid": 10090,
+        "name": "Call of Duty: World at War",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed"
+      },
+      {
+        "appid": 476600,
+        "name": "Call of Duty: WWII",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      },
+      {
+        "appid": 1091500,
+        "name": "Cyberpunk 2077",
+        "confidence": "HIGH",
+        "reason": "Story RPG with 100+ hours played, likely completed main story"
+      },
+      {
+        "appid": 105400,
+        "name": "Fable III",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      },
+      {
+        "appid": 377160,
+        "name": "Fallout 4",
+        "confidence": "HIGH",
+        "reason": "User marked as already_completed, overrides all other signals"
+      },
+      {
+        "appid": 22380,
+        "name": "Fallout: New Vegas",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed"
+      },
+      {
+        "appid": 298110,
+        "name": "Far Cry 4",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed"
+      },
+      {
+        "appid": 552520,
+        "name": "Far Cry 5",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      },
+      {
+        "appid": 2215430,
+        "name": "Ghost of Tsushima DIRECTOR'S CUT",
+        "confidence": "HIGH",
+        "reason": "Marked as already completed by user"
+      },
+      {
+        "appid": 950670,
+        "name": "Gothic Playable Teaser",
+        "confidence": "MEDIUM",
+        "reason": "Playable teaser/demo - very short experience, likely completed in minimal time"
+      },
+      {
+        "appid": 3240220,
+        "name": "Grand Theft Auto V Enhanced",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed"
+      },
+      {
+        "appid": 271590,
+        "name": "Grand Theft Auto V Legacy",
+        "confidence": "HIGH",
+        "reason": "User marked as already completed with substantial playtime"
+      },
+      {
+        "appid": 990080,
+        "name": "Hogwarts Legacy",
+        "confidence": "HIGH",
+        "reason": "User marked as completed with substantial playtime"
+      },
+      {
+        "appid": 50130,
+        "name": "Mafia II (Classic)",
+        "confidence": "HIGH",
+        "reason": "Marked as already_completed by user"
+      },
+      {
+        "appid": 1817070,
+        "name": "Marvel's Spider-Man Remastered",
+        "confidence": "HIGH",
+        "reason": "User marked as completed"
+      },
+      {
+        "appid": 1817190,
+        "name": "Marvel's Spider-Man: Miles Morales",
+        "confidence": "HIGH",
+        "reason": "User marked as completed"
+      },
+      {
+        "appid": 1174180,
+        "name": "Red Dead Redemption 2",
+        "confidence": "HIGH",
+        "reason": "User marked as completed, and 60.1 hours is well above story completion time"
+      },
+      {
+        "appid": 206420,
+        "name": "Saints Row IV",
+        "confidence": "HIGH",
+        "reason": "Marked as already completed by user"
+      },
+      {
+        "appid": 55230,
+        "name": "Saints Row: The Third",
+        "confidence": "HIGH",
+        "reason": "Marked as already_completed by user"
+      },
+      {
+        "appid": 1172380,
+        "name": "STAR WARS Jedi: Fallen Order\u2122 ",
+        "confidence": "HIGH",
+        "reason": "User marked as completed, and 25.4 hours is sufficient for main story completion"
+      },
+      {
+        "appid": 1774580,
+        "name": "STAR WARS Jedi: Survivor\u2122",
+        "confidence": "HIGH",
+        "reason": "User marked as completed with substantial playtime"
+      },
+      {
+        "appid": 72850,
+        "name": "The Elder Scrolls V: Skyrim",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      },
+      {
+        "appid": 489830,
+        "name": "The Elder Scrolls V: Skyrim Special Edition",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      },
+      {
+        "appid": 201810,
+        "name": "Wolfenstein: The New Order",
+        "confidence": "HIGH",
+        "reason": "Already marked as completed by user"
+      }
+    ],
+    "IN_PROGRESS": [
+      {
+        "appid": 228400,
+        "name": "ACE COMBAT\u2122 ASSAULT HORIZON Enhanced Edition",
+        "confidence": "HIGH",
+        "reason": "Flight action game with story campaign, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 502500,
+        "name": "ACE COMBAT\u21227: SKIES UNKNOWN",
+        "confidence": "HIGH",
+        "reason": "Story-driven flight combat game, 0.4 hours is minimal progress"
+      },
+      {
+        "appid": 57300,
+        "name": "Amnesia: The Dark Descent",
+        "confidence": "HIGH",
+        "reason": "Story-driven horror game with clear ending, unplayed"
+      },
+      {
+        "appid": 15100,
+        "name": "Assassin's Creed",
+        "confidence": "HIGH",
+        "reason": "0.2 hours is minimal for a 15+ hour story campaign"
+      },
+      {
+        "appid": 48190,
+        "name": "Assassin's Creed Brotherhood",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, barely played at 0.2 hours"
+      },
+      {
+        "appid": 277590,
+        "name": "Assassin's Creed Freedom Cry",
+        "confidence": "HIGH",
+        "reason": "Story-driven standalone expansion with clear ending, unplayed"
+      },
+      {
+        "appid": 33230,
+        "name": "Assassin's Creed II",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 911400,
+        "name": "Assassin's Creed III Remastered",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure with clear narrative completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 242050,
+        "name": "Assassin's Creed IV Black Flag",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with completion, 0.2 hours barely started"
+      },
+      {
+        "appid": 260210,
+        "name": "Assassin's Creed Liberation",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 201870,
+        "name": "Assassin's Creed Revelations",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, barely played"
+      },
+      {
+        "appid": 3159330,
+        "name": "Assassin's Creed Shadows",
+        "confidence": "HIGH",
+        "reason": "Story-driven AC game, 3.1 hours indicates early progress"
+      },
+      {
+        "appid": 368500,
+        "name": "Assassin's Creed Syndicate",
+        "confidence": "HIGH",
+        "reason": "Story-driven open world game with clear ending, 0 hours means backlog"
+      },
+      {
+        "appid": 289650,
+        "name": "Assassin's Creed Unity",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game, 0 hours means backlog"
+      },
+      {
+        "appid": 354380,
+        "name": "Assassin's Creed\u00ae Chronicles: China",
+        "confidence": "MEDIUM",
+        "reason": "Short stealth platformer with story, 0.8 hours likely not enough to complete main campaign"
+      },
+      {
+        "appid": 208480,
+        "name": "Assassin's Creed\u00ae III",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with story campaign, barely played at 0.1 hours"
+      },
+      {
+        "appid": 449800,
+        "name": "Attack on Titan / A.O.T. Wings of Freedom",
+        "confidence": "MEDIUM",
+        "reason": "Story-based action game, 8.6 hours suggests partial progress through campaign"
+      },
+      {
+        "appid": 601050,
+        "name": "Attack on Titan 2 - A.O.T.2",
+        "confidence": "HIGH",
+        "reason": "Story-based action game following anime plot, 0 hours indicates backlog"
+      },
+      {
+        "appid": 317060,
+        "name": "Attractio",
+        "confidence": "HIGH",
+        "reason": "Physics puzzle game with levels and completion, unplayed"
+      },
+      {
+        "appid": 2840770,
+        "name": "Avatar: Frontiers of Pandora",
+        "confidence": "HIGH",
+        "reason": "Story-driven open world game in backlog, unplayed but completable"
+      },
+      {
+        "appid": 1086940,
+        "name": "Baldur's Gate 3",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, minimal progress on 100+ hour game"
+      },
+      {
+        "appid": 107100,
+        "name": "Bastion",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear ending, unplayed (backlog)"
+      },
+      {
+        "appid": 498240,
+        "name": "Batman - The Telltale Series",
+        "confidence": "HIGH",
+        "reason": "Episodic story game with clear completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 35140,
+        "name": "Batman: Arkham Asylum GOTY Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with definitive ending, unplayed backlog item"
+      },
+      {
+        "appid": 200260,
+        "name": "Batman: Arkham City GOTY",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed (backlog)"
+      },
+      {
+        "appid": 208650,
+        "name": "Batman\u2122: Arkham Knight",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with story campaign, unplayed backlog item"
+      },
+      {
+        "appid": 209000,
+        "name": "Batman\u2122: Arkham Origins",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign and clear ending, unplayed"
+      },
+      {
+        "appid": 502820,
+        "name": "Batman\u2122: Arkham VR",
+        "confidence": "MEDIUM",
+        "reason": "Short VR story experience with clear ending, 0 hours indicates unplayed"
+      },
+      {
+        "appid": 238460,
+        "name": "BattleBlock Theater",
+        "confidence": "HIGH",
+        "reason": "Platformer with campaign mode and story completion, unplayed"
+      },
+      {
+        "appid": 24960,
+        "name": "Battlefield: Bad Company\u2122 2",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign, 0.8 hours suggests barely started"
+      },
+      {
+        "appid": 6870,
+        "name": "Battlestations: Midway",
+        "confidence": "HIGH",
+        "reason": "Naval strategy game with campaign mode and clear progression, unplayed"
+      },
+      {
+        "appid": 960990,
+        "name": "Beyond: Two Souls",
+        "confidence": "HIGH",
+        "reason": "Narrative adventure game with definitive ending, unplayed"
+      },
+      {
+        "appid": 7670,
+        "name": "BioShock",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear ending, 1.8 hours is very early in ~12 hour campaign"
+      },
+      {
+        "appid": 8850,
+        "name": "BioShock 2",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 409720,
+        "name": "BioShock 2 Remastered",
+        "confidence": "HIGH",
+        "reason": "Story-driven shooter with clear ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 8870,
+        "name": "BioShock Infinite",
+        "confidence": "MEDIUM",
+        "reason": "Story-driven FPS with ~12 hour campaign, 5.3 hours suggests partial progress"
+      },
+      {
+        "appid": 409710,
+        "name": "BioShock Remastered",
+        "confidence": "HIGH",
+        "reason": "Story-driven shooter with clear ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 2358720,
+        "name": "Black Myth: Wukong",
+        "confidence": "HIGH",
+        "reason": "Action RPG with story completion, unplayed backlog item"
+      },
+      {
+        "appid": 49520,
+        "name": "Borderlands 2",
+        "confidence": "HIGH",
+        "reason": "Story-driven looter shooter with clear main campaign, barely started"
+      },
+      {
+        "appid": 397540,
+        "name": "Borderlands 3",
+        "confidence": "HIGH",
+        "reason": "Story-driven looter shooter with clear campaign ending, 0 hours means backlog"
+      },
+      {
+        "appid": 8980,
+        "name": "Borderlands GOTY",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG/FPS with clear campaign completion, unplayed so in backlog"
+      },
+      {
+        "appid": 729040,
+        "name": "Borderlands GOTY Enhanced",
+        "confidence": "HIGH",
+        "reason": "Story-driven looter shooter with clear campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1446650,
+        "name": "BRAVELY DEFAULT II",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 266130,
+        "name": "Breach & Clear",
+        "confidence": "MEDIUM",
+        "reason": "Tactical strategy game with campaign mode and completable missions"
+      },
+      {
+        "appid": 225080,
+        "name": "Brothers - A Tale of Two Sons",
+        "confidence": "HIGH",
+        "reason": "Story-driven adventure game with clear ending, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 99810,
+        "name": "Bulletstorm",
+        "confidence": "HIGH",
+        "reason": "Linear FPS with story campaign, unplayed (backlog)"
+      },
+      {
+        "appid": 12200,
+        "name": "Bully: Scholarship Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven open-world game with clear campaign completion, unplayed so in backlog"
+      },
+      {
+        "appid": 2620,
+        "name": "Call of Duty (2003)",
+        "confidence": "HIGH",
+        "reason": "WWII campaign with clear story completion, unplayed backlog item"
+      },
+      {
+        "appid": 2630,
+        "name": "Call of Duty 2",
+        "confidence": "HIGH",
+        "reason": "WWII campaign with clear story completion, unplayed backlog item"
+      },
+      {
+        "appid": 7940,
+        "name": "Call of Duty 4: Modern Warfare (2007)",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign with clear ending, 0.1 hours suggests barely started"
+      },
+      {
+        "appid": 42700,
+        "name": "Call of Duty: Black Ops",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign with story ending, unplayed"
+      },
+      {
+        "appid": 202970,
+        "name": "Call of Duty: Black Ops II",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign, only 0.3 hours played suggests barely started"
+      },
+      {
+        "appid": 311210,
+        "name": "Call of Duty: Black Ops III",
+        "confidence": "MEDIUM",
+        "reason": "Has campaign mode, minimal playtime suggests not completed"
+      },
+      {
+        "appid": 10180,
+        "name": "Call of Duty: Modern Warfare 2 (2009)",
+        "confidence": "HIGH",
+        "reason": "FPS with story campaign, unplayed so in backlog"
+      },
+      {
+        "appid": 2640,
+        "name": "Call of Duty: United Offensive",
+        "confidence": "HIGH",
+        "reason": "Expansion with additional campaign missions and clear completion, unplayed"
+      },
+      {
+        "appid": 42680,
+        "name": "Call of Duty\u00ae: Modern Warfare\u00ae 3 (2011)",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign with story ending, unplayed"
+      },
+      {
+        "appid": 204360,
+        "name": "Castle Crashers",
+        "confidence": "MEDIUM",
+        "reason": "Beat-em-up with story mode and ending, though has replayability elements"
+      },
+      {
+        "appid": 256290,
+        "name": "Child of Light",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG with clear ending, barely started with 0.2 hours"
+      },
+      {
+        "appid": 1903340,
+        "name": "Clair Obscur: Expedition 33",
+        "confidence": "MEDIUM",
+        "reason": "RPG with story completion, 1.3 hours is minimal progress"
+      },
+      {
+        "appid": 80,
+        "name": "Counter-Strike: Condition Zero",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign missions that can be completed, 0 hours played"
+      },
+      {
+        "appid": 100,
+        "name": "Counter-Strike: Condition Zero Deleted Scenes",
+        "confidence": "HIGH",
+        "reason": "Story-driven single-player campaign with clear completion, 0 hours played"
+      },
+      {
+        "appid": 731490,
+        "name": "Crash Bandicoot\u2122 N. Sane Trilogy",
+        "confidence": "HIGH",
+        "reason": "Platformer collection with clear level progression and completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 11390,
+        "name": "Crash Time 2",
+        "confidence": "MEDIUM",
+        "reason": "Racing game likely has career mode completion, unplayed so in backlog"
+      },
+      {
+        "appid": 17300,
+        "name": "Crysis",
+        "confidence": "HIGH",
+        "reason": "0.3 hours is minimal for a 10+ hour campaign"
+      },
+      {
+        "appid": 108800,
+        "name": "Crysis 2 Maximum Edition",
+        "confidence": "HIGH",
+        "reason": "Linear FPS with story campaign, unplayed (backlog)"
+      },
+      {
+        "appid": 1282690,
+        "name": "Crysis\u00ae 3 ",
+        "confidence": "HIGH",
+        "reason": "Linear FPS campaign with clear story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 268910,
+        "name": "Cuphead",
+        "confidence": "HIGH",
+        "reason": "Boss rush game with story progression and clear ending, unplayed"
+      },
+      {
+        "appid": 236430,
+        "name": "DARK SOULS\u2122 II",
+        "confidence": "HIGH",
+        "reason": "Action RPG with story campaign and ending, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 335300,
+        "name": "DARK SOULS\u2122 II: Scholar of the First Sin",
+        "confidence": "HIGH",
+        "reason": "Action RPG with clear story completion, unplayed"
+      },
+      {
+        "appid": 374320,
+        "name": "DARK SOULS\u2122 III",
+        "confidence": "HIGH",
+        "reason": "Has clear final boss and ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 211420,
+        "name": "DARK SOULS\u2122: Prepare To Die Edition",
+        "confidence": "HIGH",
+        "reason": "Action RPG with definitive ending despite difficulty, unplayed"
+      },
+      {
+        "appid": 570940,
+        "name": "DARK SOULS\u2122: REMASTERED",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 50620,
+        "name": "Darksiders",
+        "confidence": "HIGH",
+        "reason": "Action-adventure with story campaign, 0.1 hours means just started"
+      },
+      {
+        "appid": 50650,
+        "name": "Darksiders II",
+        "confidence": "HIGH",
+        "reason": "Action-adventure sequel with story campaign, unplayed"
+      },
+      {
+        "appid": 388410,
+        "name": "Darksiders II Deathinitive Edition",
+        "confidence": "HIGH",
+        "reason": "Action-adventure with clear story ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 606280,
+        "name": "Darksiders III",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure with definitive ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 462780,
+        "name": "Darksiders Warmastered Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1259420,
+        "name": "Days Gone",
+        "confidence": "HIGH",
+        "reason": "Story-driven open-world game with clear narrative completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 91310,
+        "name": "Dead Island",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear completion, unplayed (backlog)"
+      },
+      {
+        "appid": 216250,
+        "name": "Dead Island Riptide",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear campaign completion, 0 hours means backlog"
+      },
+      {
+        "appid": 427190,
+        "name": "Dead Rising",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign and multiple endings, 0 hours means backlog"
+      },
+      {
+        "appid": 1693980,
+        "name": "Dead Space",
+        "confidence": "HIGH",
+        "reason": "Survival horror with story campaign and clear ending, unplayed"
+      },
+      {
+        "appid": 17470,
+        "name": "Dead Space (2008)",
+        "confidence": "HIGH",
+        "reason": "Unplayed horror game with linear story campaign"
+      },
+      {
+        "appid": 47780,
+        "name": "Dead Space 2",
+        "confidence": "HIGH",
+        "reason": "Story-driven survival horror with clear ending, unplayed"
+      },
+      {
+        "appid": 285420,
+        "name": "Deadly Sin 2",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 1190460,
+        "name": "DEATH STRANDING",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear narrative completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1850570,
+        "name": "DEATH STRANDING DIRECTOR'S CUT",
+        "confidence": "HIGH",
+        "reason": "Story-driven game with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 96100,
+        "name": "Defy Gravity",
+        "confidence": "MEDIUM",
+        "reason": "Short puzzle platformer with defined levels, barely played"
+      },
+      {
+        "appid": 803330,
+        "name": "Destroy All Humans!",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear campaign, low playtime suggests incomplete"
+      },
+      {
+        "appid": 1266700,
+        "name": "Destroy All Humans! 2 - Reprobed",
+        "confidence": "HIGH",
+        "reason": "Action adventure with clear story campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1222140,
+        "name": "Detroit: Become Human",
+        "confidence": "HIGH",
+        "reason": "Interactive narrative drama with clear story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 6910,
+        "name": "Deus Ex: Game of the Year Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear narrative progression and ending, unplayed"
+      },
+      {
+        "appid": 238010,
+        "name": "Deus Ex: Human Revolution - Director's Cut",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, 0 hours played means backlog"
+      },
+      {
+        "appid": 6920,
+        "name": "Deus Ex: Invisible War",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear narrative progression and ending, unplayed"
+      },
+      {
+        "appid": 258180,
+        "name": "Deus Ex: The Fall",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 205100,
+        "name": "Dishonored",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear campaign progression, unplayed"
+      },
+      {
+        "appid": 403640,
+        "name": "Dishonored 2",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game, 1.4 hours not enough to complete main campaign"
+      },
+      {
+        "appid": 614570,
+        "name": "Dishonored\u00ae: Death of the Outsider\u2122 ",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear narrative completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1522160,
+        "name": "Disney Epic Mickey: Rebrushed",
+        "confidence": "HIGH",
+        "reason": "Platformer with story campaign and clear ending, unplayed"
+      },
+      {
+        "appid": 220440,
+        "name": "DmC Devil May Cry",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear narrative completion, 0 hours means backlog"
+      },
+      {
+        "appid": 379720,
+        "name": "DOOM",
+        "confidence": "HIGH",
+        "reason": "Has single-player campaign with clear ending, 0 hours means backlog"
+      },
+      {
+        "appid": 9050,
+        "name": "DOOM 3",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 208200,
+        "name": "DOOM 3: BFG Edition",
+        "confidence": "HIGH",
+        "reason": "FPS with story campaign, only 0.2 hours played indicates just started"
+      },
+      {
+        "appid": 9070,
+        "name": "DOOM 3: Resurrection of Evil",
+        "confidence": "HIGH",
+        "reason": "Story-driven expansion with clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 1238040,
+        "name": "Dragon Age II: Ultimate Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with definitive ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 17450,
+        "name": "Dragon Age: Origins",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-heavy RPG with clear main quest completion"
+      },
+      {
+        "appid": 47810,
+        "name": "Dragon Age: Origins - Ultimate Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with definitive ending, unplayed backlog item"
+      },
+      {
+        "appid": 1222690,
+        "name": "Dragon Age\u2122 Inquisition",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with definitive ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 248650,
+        "name": "Draw a Stickman: EPIC",
+        "confidence": "HIGH",
+        "reason": "Adventure puzzle game with story completion, unplayed"
+      },
+      {
+        "appid": 239140,
+        "name": "Dying Light",
+        "confidence": "HIGH",
+        "reason": "Story-driven zombie survival with campaign completion, unplayed"
+      },
+      {
+        "appid": 1245620,
+        "name": "ELDEN RING",
+        "confidence": "HIGH",
+        "reason": "Action RPG with clear story completion and multiple endings, 0 hours indicates backlog"
+      },
+      {
+        "appid": 245280,
+        "name": "ENSLAVED\u2122: Odyssey to the West\u2122 Premium Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven action adventure with clear ending, unplayed"
+      },
+      {
+        "appid": 21090,
+        "name": "F.E.A.R.",
+        "confidence": "HIGH",
+        "reason": "Unplayed horror FPS with linear story campaign"
+      },
+      {
+        "appid": 16450,
+        "name": "F.E.A.R. 2: Project Origin",
+        "confidence": "HIGH",
+        "reason": "Unplayed horror FPS with linear story campaign"
+      },
+      {
+        "appid": 21100,
+        "name": "F.E.A.R. 3",
+        "confidence": "HIGH",
+        "reason": "Unplayed horror FPS with linear story campaign"
+      },
+      {
+        "appid": 21110,
+        "name": "F.E.A.R.: Extraction Point",
+        "confidence": "HIGH",
+        "reason": "Unplayed expansion with linear story campaign"
+      },
+      {
+        "appid": 21120,
+        "name": "F.E.A.R.: Perseus Mandate",
+        "confidence": "HIGH",
+        "reason": "Unplayed expansion with linear story campaign"
+      },
+      {
+        "appid": 204030,
+        "name": "Fable - The Lost Chapters",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign and clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 288470,
+        "name": "Fable Anniversary",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign, 0.1 hours barely started"
+      },
+      {
+        "appid": 38400,
+        "name": "Fallout",
+        "confidence": "HIGH",
+        "reason": "Classic RPG with main story questline and definitive ending"
+      },
+      {
+        "appid": 38410,
+        "name": "Fallout 2",
+        "confidence": "HIGH",
+        "reason": "Classic RPG with main story questline and definitive ending"
+      },
+      {
+        "appid": 22370,
+        "name": "Fallout 3 - Game of the Year Edition",
+        "confidence": "HIGH",
+        "reason": "RPG with main story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 38420,
+        "name": "Fallout Tactics",
+        "confidence": "HIGH",
+        "reason": "Tactical RPG with campaign missions and story conclusion"
+      },
+      {
+        "appid": 13520,
+        "name": "Far Cry",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-driven FPS with clear campaign completion"
+      },
+      {
+        "appid": 19900,
+        "name": "Far Cry 2",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-driven FPS with clear campaign completion"
+      },
+      {
+        "appid": 2369390,
+        "name": "Far Cry 6",
+        "confidence": "HIGH",
+        "reason": "Open-world game with main story, 3.1 hours is early progress"
+      },
+      {
+        "appid": 939960,
+        "name": "Far Cry New Dawn",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear ending, unplayed but completable"
+      },
+      {
+        "appid": 371660,
+        "name": "Far Cry Primal",
+        "confidence": "MEDIUM",
+        "reason": "Open world story game, 7 hours likely not enough for main campaign completion"
+      },
+      {
+        "appid": 220240,
+        "name": "Far Cry\u00ae 3",
+        "confidence": "HIGH",
+        "reason": "Story-driven open-world FPS with clear campaign completion, 0 hours means backlog"
+      },
+      {
+        "appid": 233270,
+        "name": "Far Cry\u00ae 3 Blood Dragon",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with campaign, minimal playtime suggests barely started"
+      },
+      {
+        "appid": 3837340,
+        "name": "FINAL FANTASY VII",
+        "confidence": "HIGH",
+        "reason": "Classic JRPG with definitive story completion in backlog"
+      },
+      {
+        "appid": 39140,
+        "name": "FINAL FANTASY VII (2013)",
+        "confidence": "MEDIUM",
+        "reason": "JRPG with clear story ending, 0.2 hours is barely started"
+      },
+      {
+        "appid": 292120,
+        "name": "FINAL FANTASY XIII",
+        "confidence": "HIGH",
+        "reason": "JRPG with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 292140,
+        "name": "FINAL FANTASY XIII-2",
+        "confidence": "HIGH",
+        "reason": "JRPG with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 1350650,
+        "name": "FreshWomen - Season 1",
+        "confidence": "MEDIUM",
+        "reason": "Visual novel with story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 212680,
+        "name": "FTL: Faster Than Light",
+        "confidence": "MEDIUM",
+        "reason": "Roguelike with story elements and clear ending despite replayability, 0 hours means backlog"
+      },
+      {
+        "appid": 330840,
+        "name": "Game of Thrones - A Telltale Games Series",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story completion, minimal playtime"
+      },
+      {
+        "appid": 2523720,
+        "name": "Gears of War: Reloaded",
+        "confidence": "HIGH",
+        "reason": "Third-person shooter with campaign story, unplayed backlog"
+      },
+      {
+        "appid": 899440,
+        "name": "GOD EATER 3",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1593500,
+        "name": "God of War",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with definitive ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 2322010,
+        "name": "God of War Ragnar\u00f6k",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed backlog"
+      },
+      {
+        "appid": 274290,
+        "name": "Gods Will Be Watching",
+        "confidence": "HIGH",
+        "reason": "Story-driven adventure game with clear ending, barely started"
+      },
+      {
+        "appid": 232430,
+        "name": "Gone Home",
+        "confidence": "HIGH",
+        "reason": "Story exploration game with clear ending, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 12100,
+        "name": "Grand Theft Auto III",
+        "confidence": "HIGH",
+        "reason": "Open-world game with story missions and clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 12230,
+        "name": "Grand Theft Auto III",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-driven open world game with clear completion"
+      },
+      {
+        "appid": 1546970,
+        "name": "Grand Theft Auto III - The Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Open-world game with main story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 12210,
+        "name": "Grand Theft Auto IV: The Complete Edition",
+        "confidence": "HIGH",
+        "reason": "1.1 hours is minimal for a 25+ hour open world campaign"
+      },
+      {
+        "appid": 12120,
+        "name": "Grand Theft Auto: San Andreas",
+        "confidence": "HIGH",
+        "reason": "Open-world game with lengthy story campaign, 2.4 hours is minimal progress"
+      },
+      {
+        "appid": 12250,
+        "name": "Grand Theft Auto: San Andreas",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-driven open world game with clear completion"
+      },
+      {
+        "appid": 1547000,
+        "name": "Grand Theft Auto: San Andreas - The Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Open-world game with main story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 12110,
+        "name": "Grand Theft Auto: Vice City",
+        "confidence": "HIGH",
+        "reason": "Open-world game with story campaign, minimal playtime suggests barely started"
+      },
+      {
+        "appid": 12240,
+        "name": "Grand Theft Auto: Vice City",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-driven open world game with clear completion"
+      },
+      {
+        "appid": 1546990,
+        "name": "Grand Theft Auto: Vice City - The Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Open-world game with main story, minimal playtime suggests early progress"
+      },
+      {
+        "appid": 3400930,
+        "name": "Guilty as Sock!",
+        "confidence": "MEDIUM",
+        "reason": "Indie game in backlog, likely has completion but unknown type"
+      },
+      {
+        "appid": 220,
+        "name": "Half-Life 2",
+        "confidence": "HIGH",
+        "reason": "Classic story-driven FPS with definitive ending, unplayed backlog item"
+      },
+      {
+        "appid": 976730,
+        "name": "Halo: The Master Chief Collection",
+        "confidence": "HIGH",
+        "reason": "Multiple story campaigns with clear endings, minimal progress made"
+      },
+      {
+        "appid": 960910,
+        "name": "Heavy Rain",
+        "confidence": "HIGH",
+        "reason": "Narrative adventure game with clear story completion, unplayed"
+      },
+      {
+        "appid": 265890,
+        "name": "Hexcells",
+        "confidence": "HIGH",
+        "reason": "Puzzle game with finite levels and clear completion state"
+      },
+      {
+        "appid": 271900,
+        "name": "Hexcells Plus",
+        "confidence": "HIGH",
+        "reason": "Puzzle game with finite levels and clear completion state"
+      },
+      {
+        "appid": 1583230,
+        "name": "High On Life",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear campaign ending, unplayed"
+      },
+      {
+        "appid": 6850,
+        "name": "Hitman 2: Silent Assassin",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear missions and ending, unplayed"
+      },
+      {
+        "appid": 203140,
+        "name": "Hitman: Absolution",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear progression, unplayed backlog item"
+      },
+      {
+        "appid": 6860,
+        "name": "Hitman: Blood Money",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear missions and ending, unplayed"
+      },
+      {
+        "appid": 6900,
+        "name": "Hitman: Codename 47",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear missions and ending, unplayed"
+      },
+      {
+        "appid": 247430,
+        "name": "Hitman: Contracts",
+        "confidence": "HIGH",
+        "reason": "Mission-based stealth with campaign completion, unplayed"
+      },
+      {
+        "appid": 367520,
+        "name": "Hollow Knight",
+        "confidence": "HIGH",
+        "reason": "Metroidvania with clear story ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 1030300,
+        "name": "Hollow Knight: Silksong",
+        "confidence": "HIGH",
+        "reason": "Story-driven metroidvania with clear ending, unplayed"
+      },
+      {
+        "appid": 2420110,
+        "name": "Horizon Forbidden West\u2122 Complete Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven open-world RPG with ending, unplayed backlog"
+      },
+      {
+        "appid": 1151640,
+        "name": "Horizon Zero Dawn\u2122 Complete Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 2561580,
+        "name": "Horizon Zero Dawn\u2122 Remastered",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with ending, unplayed backlog item"
+      },
+      {
+        "appid": 219150,
+        "name": "Hotline Miami",
+        "confidence": "MEDIUM",
+        "reason": "Story-driven action game with clear narrative ending, 2.2 hours is early progress"
+      },
+      {
+        "appid": 274170,
+        "name": "Hotline Miami 2: Wrong Number",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 2677660,
+        "name": "Indiana Jones and the Great Circle",
+        "confidence": "HIGH",
+        "reason": "Story-driven adventure game in backlog, unplayed but completable"
+      },
+      {
+        "appid": 242700,
+        "name": "Injustice: Gods Among Us Ultimate Edition",
+        "confidence": "MEDIUM",
+        "reason": "Has story mode campaign, 1.8 hours likely not enough to complete"
+      },
+      {
+        "appid": 627270,
+        "name": "Injustice\u2122 2",
+        "confidence": "MEDIUM",
+        "reason": "Fighting game with story campaign mode, 0 hours suggests story not completed"
+      },
+      {
+        "appid": 6880,
+        "name": "Just Cause",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with main story missions and ending, unplayed"
+      },
+      {
+        "appid": 8190,
+        "name": "Just Cause 2",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with main story missions and ending, unplayed"
+      },
+      {
+        "appid": 225540,
+        "name": "Just Cause 3",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with main campaign, minimal playtime suggests barely started"
+      },
+      {
+        "appid": 261110,
+        "name": "Killer is Dead",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 379430,
+        "name": "Kingdom Come: Deliverance",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 1771300,
+        "name": "Kingdom Come: Deliverance II",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with main quest completion, unplayed"
+      },
+      {
+        "appid": 2552430,
+        "name": "KINGDOM HEARTS -HD 1.5+2.5 ReMIX-",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG collection with clear endings, backlog"
+      },
+      {
+        "appid": 2552440,
+        "name": "KINGDOM HEARTS HD 2.8 Final Chapter Prologue",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG collection with endings, unplayed backlog"
+      },
+      {
+        "appid": 2552450,
+        "name": "KINGDOM HEARTS III + Re Mind (DLC)",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG with clear ending, unplayed backlog"
+      },
+      {
+        "appid": 102500,
+        "name": "Kingdoms of Amalur: Reckoning\u2122",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear main quest, unplayed (backlog)"
+      },
+      {
+        "appid": 231740,
+        "name": "Knights of Pen and Paper +1",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign and ending, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 110800,
+        "name": "L.A. Noire",
+        "confidence": "HIGH",
+        "reason": "Story-driven detective game with clear ending, barely played"
+      },
+      {
+        "appid": 290460,
+        "name": "Legionwood 2: Rise of the Eternal's Realm",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 213330,
+        "name": "LEGO\u00ae Batman\u2122 2: DC Super Heroes",
+        "confidence": "HIGH",
+        "reason": "Story-driven action adventure game with clear campaign completion, 0 hours means backlog"
+      },
+      {
+        "appid": 313690,
+        "name": "LEGO\u00ae Batman\u2122 3: Beyond Gotham",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear completion, unplayed"
+      },
+      {
+        "appid": 21000,
+        "name": "LEGO\u00ae Batman\u2122: The Videogame",
+        "confidence": "HIGH",
+        "reason": "Unplayed action game with story mode completion"
+      },
+      {
+        "appid": 2950340,
+        "name": "LEGO\u00ae Harry Potter\u2122 Collection",
+        "confidence": "HIGH",
+        "reason": "Story-based adventure games in backlog, unplayed but completable"
+      },
+      {
+        "appid": 32330,
+        "name": "LEGO\u00ae Indiana Jones\u2122: The Original Adventures",
+        "confidence": "HIGH",
+        "reason": "Story-based action game with clear progression and ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 249130,
+        "name": "LEGO\u00ae MARVEL Super Heroes",
+        "confidence": "HIGH",
+        "reason": "Story-driven action adventure, 0.5 hours far from completion"
+      },
+      {
+        "appid": 32440,
+        "name": "LEGO\u00ae Star Wars\u2122: The Complete Saga",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear completion, unplayed backlog item"
+      },
+      {
+        "appid": 438640,
+        "name": "LEGO\u00ae STAR WARS\u2122: The Force Awakens",
+        "confidence": "HIGH",
+        "reason": "Story-driven game with clear completion, 0 hours played indicates backlog"
+      },
+      {
+        "appid": 920210,
+        "name": "LEGO\u00ae Star Wars\u2122: The Skywalker Saga",
+        "confidence": "HIGH",
+        "reason": "Story-based game with minimal playtime, typical completion is 15-20 hours"
+      },
+      {
+        "appid": 285160,
+        "name": "LEGO\u00ae The Hobbit\u2122",
+        "confidence": "HIGH",
+        "reason": "Story-based action game, 0 hours means backlog"
+      },
+      {
+        "appid": 214510,
+        "name": "LEGO\u00ae The Lord of the Rings\u2122",
+        "confidence": "HIGH",
+        "reason": "Story-driven action adventure following LOTR narrative, 0 hours means backlog"
+      },
+      {
+        "appid": 319630,
+        "name": "Life is Strange\u2122",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story completion, unplayed"
+      },
+      {
+        "appid": 234140,
+        "name": "Mad Max",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with main story, minimal playtime suggests barely started"
+      },
+      {
+        "appid": 1030830,
+        "name": "Mafia II: Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven crime game with definitive ending, unplayed"
+      },
+      {
+        "appid": 360430,
+        "name": "Mafia III: Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven crime game, 1 hour far too short to complete main campaign"
+      },
+      {
+        "appid": 1030840,
+        "name": "Mafia: Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven crime game with clear narrative completion, unplayed"
+      },
+      {
+        "appid": 1941540,
+        "name": "Mafia: The Old Country",
+        "confidence": "HIGH",
+        "reason": "Story-driven crime game with clear ending, unplayed backlog"
+      },
+      {
+        "appid": 42910,
+        "name": "Magicka",
+        "confidence": "MEDIUM",
+        "reason": "Action-adventure with story campaign and ending, though designed for co-op replay"
+      },
+      {
+        "appid": 1088850,
+        "name": "Marvel's Guardians of the Galaxy",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure with definitive ending, unplayed"
+      },
+      {
+        "appid": 2651280,
+        "name": "Marvel's Spider-Man 2",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game in backlog, unplayed but completable"
+      },
+      {
+        "appid": 17460,
+        "name": "Mass Effect (2007)",
+        "confidence": "HIGH",
+        "reason": "0.1 hours is minimal for a 20+ hour story RPG"
+      },
+      {
+        "appid": 24980,
+        "name": "Mass Effect 2 (2010)",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, 0.1 hours indicates barely started"
+      },
+      {
+        "appid": 2362420,
+        "name": "Mass Effect 2 (2010) Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, unplayed backlog"
+      },
+      {
+        "appid": 1328670,
+        "name": "Mass Effect\u2122 Legendary Edition",
+        "confidence": "HIGH",
+        "reason": "Collection of story-driven RPGs with clear trilogy completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 12140,
+        "name": "Max Payne",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 12150,
+        "name": "Max Payne 2: The Fall of Max Payne",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 204100,
+        "name": "Max Payne 3",
+        "confidence": "HIGH",
+        "reason": "Linear third-person shooter with story campaign, unplayed"
+      },
+      {
+        "appid": 235460,
+        "name": "METAL GEAR RISING: REVENGEANCE",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign, minimal playtime suggests barely started"
+      },
+      {
+        "appid": 311340,
+        "name": "METAL GEAR SOLID V: GROUND ZEROES",
+        "confidence": "MEDIUM",
+        "reason": "Short prologue chapter, typically takes 2-4 hours to complete"
+      },
+      {
+        "appid": 287700,
+        "name": "METAL GEAR SOLID V: THE PHANTOM PAIN",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game, 0.2 hours barely started"
+      },
+      {
+        "appid": 43110,
+        "name": "Metro 2033",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear ending, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 241930,
+        "name": "Middle-earth\u2122: Shadow of Mordor\u2122",
+        "confidence": "HIGH",
+        "reason": "Action RPG with story campaign and clear ending, unplayed"
+      },
+      {
+        "appid": 356190,
+        "name": "Middle-earth\u2122: Shadow of War\u2122",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear ending, 0 hours means backlog"
+      },
+      {
+        "appid": 2544090,
+        "name": "Milfy City - Final Edition",
+        "confidence": "MEDIUM",
+        "reason": "Visual novel/story game with completion, 11.6 hours shows progress"
+      },
+      {
+        "appid": 35000,
+        "name": "Mini Ninjas",
+        "confidence": "HIGH",
+        "reason": "Action-adventure game with story campaign and clear ending"
+      },
+      {
+        "appid": 17410,
+        "name": "Mirror's Edge",
+        "confidence": "HIGH",
+        "reason": "Unplayed parkour game with story campaign"
+      },
+      {
+        "appid": 543870,
+        "name": "NARUTO SHIPPUDEN: Ultimate Ninja STORM 2",
+        "confidence": "HIGH",
+        "reason": "Story mode fighting game with campaign, 0 hours indicates backlog"
+      },
+      {
+        "appid": 234670,
+        "name": "NARUTO SHIPPUDEN: Ultimate Ninja STORM 3 Full Burst",
+        "confidence": "HIGH",
+        "reason": "Fighting game with story mode, minimal playtime suggests incomplete"
+      },
+      {
+        "appid": 349040,
+        "name": "NARUTO SHIPPUDEN: Ultimate Ninja STORM 4",
+        "confidence": "MEDIUM",
+        "reason": "Has story mode with completion, minimal playtime"
+      },
+      {
+        "appid": 1020790,
+        "name": "NARUTO X BORUTO Ultimate Ninja STORM CONNECTIONS",
+        "confidence": "MEDIUM",
+        "reason": "Fighting game with story mode that can be completed, unplayed"
+      },
+      {
+        "appid": 495140,
+        "name": "NARUTO: Ultimate Ninja STORM",
+        "confidence": "HIGH",
+        "reason": "Story mode fighting game with campaign, 0 hours indicates backlog"
+      },
+      {
+        "appid": 524220,
+        "name": "NieR:Automata\u2122",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG, 2.1 hours is very early progress for 25+ hour game"
+      },
+      {
+        "appid": 485510,
+        "name": "Nioh: Complete Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 224480,
+        "name": "Octodad: Dadliest Catch",
+        "confidence": "MEDIUM",
+        "reason": "Story-driven comedy game with clear ending, 0.4 hours suggests very early progress"
+      },
+      {
+        "appid": 587620,
+        "name": "Okami HD",
+        "confidence": "HIGH",
+        "reason": "Story-driven action-adventure game with clear completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 12830,
+        "name": "Operation Flashpoint: Dragon Rising",
+        "confidence": "HIGH",
+        "reason": "Unplayed tactical shooter with campaign missions"
+      },
+      {
+        "appid": 44340,
+        "name": "Operation Flashpoint: Red River",
+        "confidence": "HIGH",
+        "reason": "Tactical shooter with campaign mode, 0 hours means unplayed backlog"
+      },
+      {
+        "appid": 29180,
+        "name": "Osmos",
+        "confidence": "MEDIUM",
+        "reason": "Physics puzzle game with levels to complete, 0 hours indicates backlog"
+      },
+      {
+        "appid": 11450,
+        "name": "Overlord",
+        "confidence": "HIGH",
+        "reason": "Action RPG with story campaign and clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 12810,
+        "name": "Overlord II",
+        "confidence": "HIGH",
+        "reason": "Unplayed action RPG with campaign and clear ending"
+      },
+      {
+        "appid": 12710,
+        "name": "Overlord: Raising Hell",
+        "confidence": "HIGH",
+        "reason": "Unplayed action RPG with campaign and clear ending"
+      },
+      {
+        "appid": 214870,
+        "name": "Painkiller Hell & Damnation",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear campaign completion, 0 hours means backlog"
+      },
+      {
+        "appid": 3270,
+        "name": "Painkiller Overdose",
+        "confidence": "HIGH",
+        "reason": "FPS with story campaign and clear completion, unplayed backlog item"
+      },
+      {
+        "appid": 39530,
+        "name": "Painkiller: Black Edition",
+        "confidence": "HIGH",
+        "reason": "FPS with campaign mode and clear progression to ending"
+      },
+      {
+        "appid": 206760,
+        "name": "Painkiller: Recurring Evil",
+        "confidence": "HIGH",
+        "reason": "FPS with campaign mode and ending, unplayed backlog item"
+      },
+      {
+        "appid": 65560,
+        "name": "Painkiller: Redemption",
+        "confidence": "HIGH",
+        "reason": "FPS with campaign mode and clear progression, unplayed"
+      },
+      {
+        "appid": 39560,
+        "name": "Painkiller: Resurrection",
+        "confidence": "HIGH",
+        "reason": "FPS with campaign mode and clear progression to ending"
+      },
+      {
+        "appid": 239030,
+        "name": "Papers, Please",
+        "confidence": "MEDIUM",
+        "reason": "Has multiple story endings, 0.4 hours is minimal playtime for completion"
+      },
+      {
+        "appid": 3527290,
+        "name": "PEAK",
+        "confidence": "LOW",
+        "reason": "Unknown game type, 1.4 hours suggests some progress on completable content"
+      },
+      {
+        "appid": 1113000,
+        "name": "Persona 4 Golden",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG with clear ending, unplayed but completable"
+      },
+      {
+        "appid": 400,
+        "name": "Portal",
+        "confidence": "MEDIUM",
+        "reason": "Puzzle game with clear story ending, 2 hours played but typical completion is 3-4 hours"
+      },
+      {
+        "appid": 620,
+        "name": "Portal 2",
+        "confidence": "MEDIUM",
+        "reason": "Story-driven puzzle game with clear ending, 1 hour played but needs 8-10 hours to complete"
+      },
+      {
+        "appid": 895870,
+        "name": "Project Wingman",
+        "confidence": "HIGH",
+        "reason": "Story-driven flight combat game with clear campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 10150,
+        "name": "Prototype",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear ending, unplayed so in backlog"
+      },
+      {
+        "appid": 115320,
+        "name": "PROTOTYPE 2",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with story campaign, unplayed (backlog)"
+      },
+      {
+        "appid": 3241660,
+        "name": "R.E.P.O.",
+        "confidence": "MEDIUM",
+        "reason": "Indie game with 3.5 hours played, likely story-driven but unclear completion status"
+      },
+      {
+        "appid": 1895880,
+        "name": "Ratchet & Clank: Rift Apart",
+        "confidence": "HIGH",
+        "reason": "Action-adventure with story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 242550,
+        "name": "Rayman Legends",
+        "confidence": "HIGH",
+        "reason": "Platformer with campaign completion possible, unplayed backlog"
+      },
+      {
+        "appid": 2668510,
+        "name": "Red Dead Redemption",
+        "confidence": "HIGH",
+        "reason": "Story-driven western RPG in backlog, unplayed but completable"
+      },
+      {
+        "appid": 236830,
+        "name": "Red Orchestra 2: Heroes of Stalingrad - Single Player",
+        "confidence": "HIGH",
+        "reason": "FPS with single-player campaign, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 2050650,
+        "name": "Resident Evil 4",
+        "confidence": "HIGH",
+        "reason": "Story-driven survival horror with clear ending, backlog item"
+      },
+      {
+        "appid": 254700,
+        "name": "Resident Evil 4 (2005)",
+        "confidence": "HIGH",
+        "reason": "Story-driven survival horror game with clear ending, barely started with 0.2 hours"
+      },
+      {
+        "appid": 3764200,
+        "name": "Resident Evil Requiem",
+        "confidence": "MEDIUM",
+        "reason": "Likely story-driven horror game in backlog, unplayed but completable"
+      },
+      {
+        "appid": 12770,
+        "name": "Rise of the Argonauts",
+        "confidence": "HIGH",
+        "reason": "Unplayed story-driven RPG with definitive completion"
+      },
+      {
+        "appid": 40300,
+        "name": "Risen",
+        "confidence": "HIGH",
+        "reason": "RPG with main questline and story conclusion"
+      },
+      {
+        "appid": 40390,
+        "name": "Risen 2 - Dark Waters",
+        "confidence": "HIGH",
+        "reason": "RPG sequel with main questline and story conclusion"
+      },
+      {
+        "appid": 302510,
+        "name": "Ryse: Son of Rome",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game, 0 hours means backlog"
+      },
+      {
+        "appid": 1599660,
+        "name": "Sackboy\u2122: A Big Adventure",
+        "confidence": "HIGH",
+        "reason": "Platformer with campaign completion, unplayed"
+      },
+      {
+        "appid": 225640,
+        "name": "Sacred 2 Gold",
+        "confidence": "HIGH",
+        "reason": "Action RPG with completable campaign, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 207930,
+        "name": "Sacred Citadel",
+        "confidence": "HIGH",
+        "reason": "Side-scrolling action RPG with story campaign, unplayed"
+      },
+      {
+        "appid": 9480,
+        "name": "Saints Row 2",
+        "confidence": "HIGH",
+        "reason": "Open-world game with story campaign, minimal playtime suggests barely started"
+      },
+      {
+        "appid": 301910,
+        "name": "Saints Row: Gat out of Hell",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 8200,
+        "name": "Sam & Max 101: Culture Shock",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8210,
+        "name": "Sam & Max 102: Situation: Comedy",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8220,
+        "name": "Sam & Max 103: The Mole, the Mob and the Meatball",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8230,
+        "name": "Sam & Max 104: Abe Lincoln Must Die!",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8240,
+        "name": "Sam & Max 105: Reality 2.0",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8250,
+        "name": "Sam & Max 106: Bright Side of the Moon",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8260,
+        "name": "Sam & Max 201: Ice Station Santa",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8270,
+        "name": "Sam & Max 202: Moai Better Blues",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear story progression and ending, unplayed"
+      },
+      {
+        "appid": 8280,
+        "name": "Sam & Max 203: Night of the Raving Dead",
+        "confidence": "HIGH",
+        "reason": "Adventure game with clear story completion, unplayed so in backlog"
+      },
+      {
+        "appid": 8290,
+        "name": "Sam & Max 204: Chariots of the Dogs",
+        "confidence": "HIGH",
+        "reason": "Adventure game with clear story completion, unplayed so in backlog"
+      },
+      {
+        "appid": 8300,
+        "name": "Sam & Max 205: What's New Beelzebub?",
+        "confidence": "HIGH",
+        "reason": "Adventure game with clear story completion, unplayed so in backlog"
+      },
+      {
+        "appid": 31220,
+        "name": "Sam & Max 301: The Penal Zone",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 31230,
+        "name": "Sam & Max 302: The Tomb of Sammun-Mak",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 31240,
+        "name": "Sam & Max 303: They Stole Max's Brain!",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 31250,
+        "name": "Sam & Max 304: Beyond the Alley of the Dolls",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 31260,
+        "name": "Sam & Max 305: The City that Dares not Sleep",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 814380,
+        "name": "Sekiro\u2122: Shadows Die Twice",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with definitive ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 234650,
+        "name": "Shadowrun Returns",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear campaign ending, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 228960,
+        "name": "Skulls of the Shogun",
+        "confidence": "HIGH",
+        "reason": "Turn-based strategy with single-player campaign, 0 playtime indicates backlog"
+      },
+      {
+        "appid": 278460,
+        "name": "Skyborn",
+        "confidence": "HIGH",
+        "reason": "JRPG with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 307690,
+        "name": "Sleeping Dogs: Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear completion, unplayed"
+      },
+      {
+        "appid": 202170,
+        "name": "Sleeping Dogs\u2122",
+        "confidence": "HIGH",
+        "reason": "Open-world action game with story campaign, 0 hours played indicates backlog"
+      },
+      {
+        "appid": 238090,
+        "name": "Sniper Elite 3",
+        "confidence": "HIGH",
+        "reason": "Campaign-based shooter with story completion, unplayed backlog"
+      },
+      {
+        "appid": 312660,
+        "name": "Sniper Elite 4",
+        "confidence": "HIGH",
+        "reason": "Story-driven tactical shooter with clear completion, unplayed"
+      },
+      {
+        "appid": 1029690,
+        "name": "Sniper Elite 5",
+        "confidence": "HIGH",
+        "reason": "Story-driven tactical shooter with campaign completion, unplayed"
+      },
+      {
+        "appid": 63380,
+        "name": "Sniper Elite V2",
+        "confidence": "MEDIUM",
+        "reason": "Stealth shooter with campaign mode, 3.2 hours suggests early progress"
+      },
+      {
+        "appid": 752480,
+        "name": "Sniper Elite VR",
+        "confidence": "HIGH",
+        "reason": "Story-driven VR shooter with campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1237320,
+        "name": "Sonic Frontiers",
+        "confidence": "HIGH",
+        "reason": "Platform adventure with clear story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 213670,
+        "name": "South Park\u2122: The Stick of Truth\u2122",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear narrative completion, 0 hours means backlog"
+      },
+      {
+        "appid": 315260,
+        "name": "Space Hack",
+        "confidence": "MEDIUM",
+        "reason": "Action RPG with story campaign, unplayed"
+      },
+      {
+        "appid": 92800,
+        "name": "SpaceChem",
+        "confidence": "MEDIUM",
+        "reason": "Puzzle game with defined levels and progression, unplayed (backlog)"
+      },
+      {
+        "appid": 50300,
+        "name": "Spec Ops: The Line",
+        "confidence": "HIGH",
+        "reason": "Narrative-focused military shooter with clear ending, barely started"
+      },
+      {
+        "appid": 996580,
+        "name": "Spyro\u2122 Reignited Trilogy",
+        "confidence": "HIGH",
+        "reason": "Platformer trilogy with clear story completion, barely started"
+      },
+      {
+        "appid": 318430,
+        "name": "Squishy the Suicidal Pig",
+        "confidence": "MEDIUM",
+        "reason": "Puzzle platformer with levels and completion, minimal playtime"
+      },
+      {
+        "appid": 2842040,
+        "name": "Star Wars Outlaws",
+        "confidence": "HIGH",
+        "reason": "Story-driven action adventure in backlog, unplayed but completable"
+      },
+      {
+        "appid": 6030,
+        "name": "STAR WARS\u2122 Jedi Knight II: Jedi Outcast\u2122",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign and clear completion, unplayed backlog"
+      },
+      {
+        "appid": 32380,
+        "name": "STAR WARS\u2122 Jedi Knight: Dark Forces II",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 6020,
+        "name": "STAR WARS\u2122 Jedi Knight: Jedi Academy\u2122",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign and clear completion, unplayed backlog"
+      },
+      {
+        "appid": 32390,
+        "name": "STAR WARS\u2122 Jedi Knight: Mysteries of the Sith\u2122",
+        "confidence": "HIGH",
+        "reason": "Campaign-based FPS expansion with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 32370,
+        "name": "STAR WARS\u2122 Knights of the Old Republic\u2122",
+        "confidence": "HIGH",
+        "reason": "RPG with definitive story ending, 0.1 hours indicates barely started"
+      },
+      {
+        "appid": 208580,
+        "name": "STAR WARS\u2122 Knights of the Old Republic\u2122 II: The Sith Lords\u2122",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign and ending, only 0.1 hours played"
+      },
+      {
+        "appid": 32400,
+        "name": "STAR WARS\u2122: Dark Forces",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 455910,
+        "name": "STAR WARS\u2122: Rogue Squadron 3D",
+        "confidence": "HIGH",
+        "reason": "Mission-based flight game with campaign, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1222730,
+        "name": "STAR WARS\u2122: Squadrons",
+        "confidence": "MEDIUM",
+        "reason": "Has single-player campaign with clear completion, 2.6 hours suggests early progress"
+      },
+      {
+        "appid": 32500,
+        "name": "STAR WARS\u2122: The Force Unleashed\u2122 II",
+        "confidence": "HIGH",
+        "reason": "Action-adventure sequel with story campaign, unplayed backlog item"
+      },
+      {
+        "appid": 32430,
+        "name": "STAR WARS\u2122: The Force Unleashed\u2122 Ultimate Sith Edition",
+        "confidence": "MEDIUM",
+        "reason": "Action-adventure game with story campaign, 0.7 hours is very minimal for completion"
+      },
+      {
+        "appid": 1716740,
+        "name": "Starfield",
+        "confidence": "HIGH",
+        "reason": "RPG with main story completion despite open-world elements, unplayed"
+      },
+      {
+        "appid": 315210,
+        "name": "Suicide Squad: Kill the Justice League",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game with clear completion, unplayed"
+      },
+      {
+        "appid": 847370,
+        "name": "Sunset Overdrive",
+        "confidence": "HIGH",
+        "reason": "Story-driven open-world action game with campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 40800,
+        "name": "Super Meat Boy",
+        "confidence": "MEDIUM",
+        "reason": "Platformer with defined levels and ending, 0.1 hours barely played"
+      },
+      {
+        "appid": 617830,
+        "name": "SUPERHOT VR",
+        "confidence": "MEDIUM",
+        "reason": "Has campaign mode with definitive ending, low playtime suggests incomplete"
+      },
+      {
+        "appid": 300540,
+        "name": "Sweet Lily Dreams",
+        "confidence": "HIGH",
+        "reason": "RPG with story campaign, 0 hours means backlog"
+      },
+      {
+        "appid": 351970,
+        "name": "Tales of Zestiria",
+        "confidence": "HIGH",
+        "reason": "Story-driven JRPG with clear completion, unplayed"
+      },
+      {
+        "appid": 1601570,
+        "name": "The Alters",
+        "confidence": "MEDIUM",
+        "reason": "Story-driven adventure game with completion state, unplayed"
+      },
+      {
+        "appid": 237990,
+        "name": "The Banner Saga",
+        "confidence": "HIGH",
+        "reason": "Tactical RPG with definitive story completion, unplayed backlog item"
+      },
+      {
+        "appid": 113200,
+        "name": "The Binding of Isaac",
+        "confidence": "MEDIUM",
+        "reason": "Roguelike with story elements and unlockable endings, unplayed (backlog)"
+      },
+      {
+        "appid": 65930,
+        "name": "The Bureau: XCOM Declassified",
+        "confidence": "HIGH",
+        "reason": "Story-driven tactical shooter with campaign, unplayed"
+      },
+      {
+        "appid": 22320,
+        "name": "The Elder Scrolls III: Morrowind",
+        "confidence": "HIGH",
+        "reason": "RPG with main questline completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 22330,
+        "name": "The Elder Scrolls IV: Oblivion Game of the Year Edition (2009)",
+        "confidence": "HIGH",
+        "reason": "RPG with main questline, 4.7 hours is far from typical completion time"
+      },
+      {
+        "appid": 2623190,
+        "name": "The Elder Scrolls IV: Oblivion Remastered",
+        "confidence": "HIGH",
+        "reason": "RPG with main story, 6.3 hours is early progress for Oblivion's lengthy campaign"
+      },
+      {
+        "appid": 611670,
+        "name": "The Elder Scrolls V: Skyrim VR",
+        "confidence": "MEDIUM",
+        "reason": "Has main quest completion despite open world nature, minimal playtime suggests not finished"
+      },
+      {
+        "appid": 268050,
+        "name": "The Evil Within",
+        "confidence": "HIGH",
+        "reason": "Story-driven survival horror with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 1888930,
+        "name": "The Last of Us\u2122 Part I",
+        "confidence": "HIGH",
+        "reason": "Linear story-driven game with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 23310,
+        "name": "The Last Remnant",
+        "confidence": "HIGH",
+        "reason": "JRPG with definitive story ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 281690,
+        "name": "The Legend of Korra\u2122",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign, 0.5 hours barely started"
+      },
+      {
+        "appid": 267530,
+        "name": "The LEGO\u00ae Movie - Videogame",
+        "confidence": "HIGH",
+        "reason": "Story-driven action game based on movie with clear ending, unplayed"
+      },
+      {
+        "appid": 578650,
+        "name": "The Outer Worlds",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 1920490,
+        "name": "The Outer Worlds: Spacer's Choice Edition",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG with clear ending, unplayed backlog"
+      },
+      {
+        "appid": 207610,
+        "name": "The Walking Dead",
+        "confidence": "MEDIUM",
+        "reason": "Episodic adventure game, 5.8 hours suggests partial completion of episodes"
+      },
+      {
+        "appid": 261030,
+        "name": "The Walking Dead: Season Two",
+        "confidence": "HIGH",
+        "reason": "Episodic narrative adventure with clear ending, unplayed backlog item"
+      },
+      {
+        "appid": 1449690,
+        "name": "The Walking Dead: The Telltale Definitive Series",
+        "confidence": "HIGH",
+        "reason": "Episodic adventure game series with definitive story ending, unplayed"
+      },
+      {
+        "appid": 20920,
+        "name": "The Witcher 2: Assassins of Kings Enhanced Edition",
+        "confidence": "HIGH",
+        "reason": "0.5 hours is minimal for a 35+ hour story RPG"
+      },
+      {
+        "appid": 292030,
+        "name": "The Witcher 3: Wild Hunt",
+        "confidence": "HIGH",
+        "reason": "Story-driven RPG, 0 hours means backlog"
+      },
+      {
+        "appid": 20900,
+        "name": "The Witcher: Enhanced Edition",
+        "confidence": "HIGH",
+        "reason": "1.8 hours is minimal for a 50+ hour story RPG"
+      },
+      {
+        "appid": 250320,
+        "name": "The Wolf Among Us",
+        "confidence": "MEDIUM",
+        "reason": "Episodic adventure game with story completion, 2.9 hours may not cover all episodes"
+      },
+      {
+        "appid": 239160,
+        "name": "Thief",
+        "confidence": "HIGH",
+        "reason": "Stealth game with story campaign and clear ending, unplayed"
+      },
+      {
+        "appid": 211600,
+        "name": "Thief Gold",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear campaign completion, 0 hours means backlog"
+      },
+      {
+        "appid": 6980,
+        "name": "Thief: Deadly Shadows",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear missions and ending, unplayed"
+      },
+      {
+        "appid": 211740,
+        "name": "Thief\u2122 II: The Metal Age",
+        "confidence": "HIGH",
+        "reason": "Story-driven stealth game with clear campaign completion, 0 hours means backlog"
+      },
+      {
+        "appid": 1237970,
+        "name": "Titanfall\u00ae 2",
+        "confidence": "MEDIUM",
+        "reason": "Has acclaimed single-player campaign with clear completion despite multiplayer focus"
+      },
+      {
+        "appid": 206440,
+        "name": "To the Moon",
+        "confidence": "HIGH",
+        "reason": "Narrative-driven indie game with clear story conclusion, unplayed"
+      },
+      {
+        "appid": 21900,
+        "name": "Tom Clancy's H.A.W.X.",
+        "confidence": "MEDIUM",
+        "reason": "2.9 hours may be early progress in flight combat campaign"
+      },
+      {
+        "appid": 48160,
+        "name": "Tom Clancy's H.A.W.X. 2",
+        "confidence": "MEDIUM",
+        "reason": "Flight combat game with campaign, 1.3 hours suggests early stages"
+      },
+      {
+        "appid": 203160,
+        "name": "Tomb Raider",
+        "confidence": "HIGH",
+        "reason": "Action-adventure game with story campaign, 0 hours indicates backlog"
+      },
+      {
+        "appid": 237930,
+        "name": "Transistor",
+        "confidence": "HIGH",
+        "reason": "Story-driven action RPG with clear ending, 0 hours played means backlog"
+      },
+      {
+        "appid": 961490,
+        "name": "Travis Strikes Again: No More Heroes Complete Edition",
+        "confidence": "HIGH",
+        "reason": "Story-based action game with clear completion, unplayed"
+      },
+      {
+        "appid": 35700,
+        "name": "Trine",
+        "confidence": "HIGH",
+        "reason": "Puzzle-platformer with story campaign and clear ending"
+      },
+      {
+        "appid": 35720,
+        "name": "Trine 2",
+        "confidence": "HIGH",
+        "reason": "Puzzle-platformer sequel with story campaign and clear ending"
+      },
+      {
+        "appid": 1659420,
+        "name": "UNCHARTED\u2122: Legacy of Thieves Collection",
+        "confidence": "HIGH",
+        "reason": "Story-driven action adventures with clear endings, unplayed"
+      },
+      {
+        "appid": 211160,
+        "name": "Viking: Battle for Asgard",
+        "confidence": "HIGH",
+        "reason": "Action game with story campaign and ending, unplayed backlog item"
+      },
+      {
+        "appid": 243470,
+        "name": "Watch_Dogs",
+        "confidence": "HIGH",
+        "reason": "Open-world action with story campaign completion, unplayed"
+      },
+      {
+        "appid": 447040,
+        "name": "Watch_Dogs 2",
+        "confidence": "HIGH",
+        "reason": "Open-world story game, 6.1 hours is early progress for typical 20+ hour completion"
+      },
+      {
+        "appid": 1133320,
+        "name": "Westworld Awakening",
+        "confidence": "HIGH",
+        "reason": "VR narrative adventure with clear story completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 612880,
+        "name": "Wolfenstein II: The New Colossus",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear campaign completion, 0 hours indicates backlog"
+      },
+      {
+        "appid": 350080,
+        "name": "Wolfenstein: The Old Blood",
+        "confidence": "HIGH",
+        "reason": "Story-driven FPS with clear completion, minimal playtime"
+      },
+      {
+        "appid": 1056960,
+        "name": "Wolfenstein: Youngblood",
+        "confidence": "HIGH",
+        "reason": "FPS with story campaign and clear ending, unplayed"
+      },
+      {
+        "appid": 22000,
+        "name": "World of Goo",
+        "confidence": "HIGH",
+        "reason": "Puzzle game with clear progression and ending, 0 hours indicates backlog"
+      },
+      {
+        "appid": 7770,
+        "name": "X-COM: Enforcer",
+        "confidence": "MEDIUM",
+        "reason": "Third-person shooter with level progression and ending, unplayed"
+      },
+      {
+        "appid": 200510,
+        "name": "XCOM: Enemy Unknown",
+        "confidence": "HIGH",
+        "reason": "Turn-based strategy with story campaign and clear ending, unplayed (backlog)"
+      }
+    ],
+    "ENDLESS": [
+      {
+        "appid": 221380,
+        "name": "Age of Empires II (2013)",
+        "confidence": "HIGH",
+        "reason": "Real-time strategy game with endless multiplayer and skirmish gameplay"
+      },
+      {
+        "appid": 1466860,
+        "name": "Age of Empires IV: Anniversary Edition",
+        "confidence": "HIGH",
+        "reason": "Real-time strategy game focused on multiplayer and skirmishes, no clear completion"
+      },
+      {
+        "appid": 1017900,
+        "name": "Age of Empires: Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Strategy game focused on endless matches and scenarios"
+      },
+      {
+        "appid": 105450,
+        "name": "Age of Empires\u00ae III (2007)",
+        "confidence": "HIGH",
+        "reason": "RTS with focus on skirmish and multiplayer, no clear completion state"
+      },
+      {
+        "appid": 270880,
+        "name": "American Truck Simulator",
+        "confidence": "HIGH",
+        "reason": "Driving simulation with no completion state, endless career progression"
+      },
+      {
+        "appid": 945360,
+        "name": "Among Us",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only social deduction game with no completion state"
+      },
+      {
+        "appid": 403400,
+        "name": "ARCADE GAME SERIES: DIG DUG",
+        "confidence": "HIGH",
+        "reason": "Classic arcade game with no ending, score-based gameplay"
+      },
+      {
+        "appid": 403430,
+        "name": "ARCADE GAME SERIES: GALAGA",
+        "confidence": "HIGH",
+        "reason": "Classic arcade game with no ending, score-based gameplay"
+      },
+      {
+        "appid": 394160,
+        "name": "ARCADE GAME SERIES: PAC-MAN",
+        "confidence": "HIGH",
+        "reason": "Classic arcade game with no ending, score-based gameplay"
+      },
+      {
+        "appid": 204300,
+        "name": "Awesomenauts",
+        "confidence": "HIGH",
+        "reason": "Multiplayer MOBA with no completion state"
+      },
+      {
+        "appid": 242920,
+        "name": "Banished",
+        "confidence": "HIGH",
+        "reason": "City building simulation with no story or completion state"
+      },
+      {
+        "appid": 1517290,
+        "name": "Battlefield\u2122 2042",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused FPS with no single-player campaign to complete"
+      },
+      {
+        "appid": 2807960,
+        "name": "Battlefield\u2122 6",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused FPS with no real completion state"
+      },
+      {
+        "appid": 284160,
+        "name": "BeamNG.drive",
+        "confidence": "HIGH",
+        "reason": "Vehicle simulation sandbox with no completion state"
+      },
+      {
+        "appid": 620980,
+        "name": "Beat Saber",
+        "confidence": "HIGH",
+        "reason": "Rhythm game focused on endless song playing and score improvement"
+      },
+      {
+        "appid": 78000,
+        "name": "Bejeweled 3",
+        "confidence": "HIGH",
+        "reason": "Match-3 puzzle game with no story or clear ending"
+      },
+      {
+        "appid": 346010,
+        "name": "Besiege",
+        "confidence": "HIGH",
+        "reason": "Physics sandbox construction game with no completion state"
+      },
+      {
+        "appid": 582660,
+        "name": "Black Desert",
+        "confidence": "HIGH",
+        "reason": "MMORPG with no story completion, designed for endless progression"
+      },
+      {
+        "appid": 629730,
+        "name": "Blade & Sorcery",
+        "confidence": "HIGH",
+        "reason": "VR sandbox combat simulator with no campaign or story completion"
+      },
+      {
+        "appid": 225600,
+        "name": "Blade Symphony",
+        "confidence": "HIGH",
+        "reason": "Multiplayer sword fighting game with no story campaign"
+      },
+      {
+        "appid": 1689620,
+        "name": "BLEACH Rebirth of Souls",
+        "confidence": "MEDIUM",
+        "reason": "Anime fighting game, likely multiplayer-focused with no story completion"
+      },
+      {
+        "appid": 302080,
+        "name": "Bus Driver",
+        "confidence": "HIGH",
+        "reason": "Driving simulation with no story completion"
+      },
+      {
+        "appid": 42710,
+        "name": "Call of Duty: Black Ops - Multiplayer",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only component with no completion state, 19.7 hours played"
+      },
+      {
+        "appid": 202990,
+        "name": "Call of Duty: Black Ops II - Multiplayer",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only component with no completion state"
+      },
+      {
+        "appid": 212910,
+        "name": "Call of Duty: Black Ops II - Zombies",
+        "confidence": "HIGH",
+        "reason": "Zombies mode is endless survival gameplay with no story completion"
+      },
+      {
+        "appid": 10190,
+        "name": "Call of Duty: Modern Warfare 2 (2009) - Multiplayer",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only component with no completion state"
+      },
+      {
+        "appid": 476620,
+        "name": "Call of Duty: WWII - Multiplayer",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only component with no completion state"
+      },
+      {
+        "appid": 1938090,
+        "name": "Call of Duty\u00ae",
+        "confidence": "MEDIUM",
+        "reason": "Primarily multiplayer-focused, 23.4 hours suggests ongoing play"
+      },
+      {
+        "appid": 42690,
+        "name": "Call of Duty\u00ae: Modern Warfare\u00ae 3 (2011) - Multiplayer",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only component with no completion state"
+      },
+      {
+        "appid": 219640,
+        "name": "Chivalry: Medieval Warfare",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused medieval combat game with no story completion"
+      },
+      {
+        "appid": 255710,
+        "name": "Cities: Skylines",
+        "confidence": "HIGH",
+        "reason": "City building simulation with no completion state, sandbox gameplay"
+      },
+      {
+        "appid": 10,
+        "name": "Counter-Strike",
+        "confidence": "HIGH",
+        "reason": "Classic multiplayer-only competitive shooter with no story campaign"
+      },
+      {
+        "appid": 730,
+        "name": "Counter-Strike 2",
+        "confidence": "HIGH",
+        "reason": "Competitive multiplayer shooter with no story campaign or completion state"
+      },
+      {
+        "appid": 240,
+        "name": "Counter-Strike: Source",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only competitive shooter with no story campaign"
+      },
+      {
+        "appid": 203770,
+        "name": "Crusader Kings II",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game with no defined ending, 293.9 hours shows ongoing play"
+      },
+      {
+        "appid": 1158310,
+        "name": "Crusader Kings III",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game with no defined ending, focuses on ongoing dynasty management"
+      },
+      {
+        "appid": 381210,
+        "name": "Dead by Daylight",
+        "confidence": "HIGH",
+        "reason": "Asymmetric multiplayer game with no campaign or completion state"
+      },
+      {
+        "appid": 245470,
+        "name": "Democracy 3",
+        "confidence": "HIGH",
+        "reason": "Political simulation with no story or definitive completion"
+      },
+      {
+        "appid": 1085660,
+        "name": "Destiny 2",
+        "confidence": "HIGH",
+        "reason": "Live service MMO-lite with ongoing content and no true completion"
+      },
+      {
+        "appid": 70000,
+        "name": "Dino D-Day",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused FPS with no story campaign"
+      },
+      {
+        "appid": 44320,
+        "name": "DiRT 3",
+        "confidence": "HIGH",
+        "reason": "Racing game focused on events and competitions, no clear story ending"
+      },
+      {
+        "appid": 321040,
+        "name": "DiRT 3 Complete Edition",
+        "confidence": "MEDIUM",
+        "reason": "Racing game focused on events and competition rather than story"
+      },
+      {
+        "appid": 201700,
+        "name": "DiRT Showdown",
+        "confidence": "MEDIUM",
+        "reason": "Racing game focused on multiplayer and events with no story campaign"
+      },
+      {
+        "appid": 219740,
+        "name": "Don't Starve",
+        "confidence": "HIGH",
+        "reason": "Survival sandbox game focused on endless survival gameplay"
+      },
+      {
+        "appid": 322330,
+        "name": "Don't Starve Together",
+        "confidence": "HIGH",
+        "reason": "Survival multiplayer sandbox with no completion state"
+      },
+      {
+        "appid": 1172710,
+        "name": "Dune: Awakening",
+        "confidence": "HIGH",
+        "reason": "Upcoming survival MMO with persistent world and no clear completion state"
+      },
+      {
+        "appid": 65300,
+        "name": "Dustforce",
+        "confidence": "MEDIUM",
+        "reason": "Platformer focused on perfecting levels and scores, no story ending"
+      },
+      {
+        "appid": 232010,
+        "name": "Euro Truck Simulator",
+        "confidence": "HIGH",
+        "reason": "Simulation game with no story or completion state"
+      },
+      {
+        "appid": 227300,
+        "name": "Euro Truck Simulator 2",
+        "confidence": "HIGH",
+        "reason": "Simulation game with no story or completion state"
+      },
+      {
+        "appid": 25800,
+        "name": "Europa Universalis III",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game with no definitive completion state"
+      },
+      {
+        "appid": 236850,
+        "name": "Europa Universalis IV",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game with no defined ending, sandbox gameplay"
+      },
+      {
+        "appid": 1151340,
+        "name": "Fallout 76",
+        "confidence": "HIGH",
+        "reason": "Online multiplayer survival game with continuous content updates"
+      },
+      {
+        "appid": 1836200,
+        "name": "Fallout 76 Public Test Server",
+        "confidence": "HIGH",
+        "reason": "Online multiplayer game with no story completion, test server environment"
+      },
+      {
+        "appid": 209690,
+        "name": "Fieldrunners",
+        "confidence": "HIGH",
+        "reason": "Tower defense game with endless waves and no story conclusion"
+      },
+      {
+        "appid": 304390,
+        "name": "FOR HONOR",
+        "confidence": "MEDIUM",
+        "reason": "Primarily multiplayer fighting game, though has campaign mode"
+      },
+      {
+        "appid": 654310,
+        "name": "For Honor - Public Test",
+        "confidence": "HIGH",
+        "reason": "Test version of multiplayer fighting game with no completion state"
+      },
+      {
+        "appid": 1551360,
+        "name": "Forza Horizon 5",
+        "confidence": "MEDIUM",
+        "reason": "Racing game with ongoing events and progression, no clear story ending"
+      },
+      {
+        "appid": 2440510,
+        "name": "Forza Motorsport",
+        "confidence": "HIGH",
+        "reason": "Racing simulation with no story completion state"
+      },
+      {
+        "appid": 98200,
+        "name": "Frozen Synapse",
+        "confidence": "MEDIUM",
+        "reason": "Turn-based strategy with strong multiplayer focus and no clear campaign ending"
+      },
+      {
+        "appid": 44200,
+        "name": "Galcon Fusion",
+        "confidence": "HIGH",
+        "reason": "Real-time strategy multiplayer game with no story campaign"
+      },
+      {
+        "appid": 201040,
+        "name": "Galcon Legends",
+        "confidence": "HIGH",
+        "reason": "Real-time strategy focused on multiplayer matches with no campaign"
+      },
+      {
+        "appid": 292230,
+        "name": "Game Character Hub",
+        "confidence": "HIGH",
+        "reason": "Character creation tool, no completion state"
+      },
+      {
+        "appid": 239820,
+        "name": "Game Dev Tycoon",
+        "confidence": "HIGH",
+        "reason": "Business simulation with no definitive ending, sandbox gameplay"
+      },
+      {
+        "appid": 4000,
+        "name": "Garry's Mod",
+        "confidence": "HIGH",
+        "reason": "Sandbox physics game/modding platform with no completion state"
+      },
+      {
+        "appid": 265930,
+        "name": "Goat Simulator",
+        "confidence": "HIGH",
+        "reason": "Sandbox physics game with no completion state, endless experimentation"
+      },
+      {
+        "appid": 8660,
+        "name": "GTR Evolution",
+        "confidence": "HIGH",
+        "reason": "Racing simulation game with no clear completion point"
+      },
+      {
+        "appid": 267900,
+        "name": "Guilty Gear Isuka",
+        "confidence": "HIGH",
+        "reason": "Fighting game focused on multiplayer competition with no completion state"
+      },
+      {
+        "appid": 376300,
+        "name": "GUILTY GEAR Xrd -SIGN-",
+        "confidence": "HIGH",
+        "reason": "Fighting game, primarily competitive multiplayer with no clear completion state"
+      },
+      {
+        "appid": 239450,
+        "name": "Gun Monkeys",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused arcade game with no campaign or story"
+      },
+      {
+        "appid": 320,
+        "name": "Half-Life 2: Deathmatch",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only deathmatch mode with no completion state"
+      },
+      {
+        "appid": 360,
+        "name": "Half-Life Deathmatch: Source",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only deathmatch mode with no completion state"
+      },
+      {
+        "appid": 1294760,
+        "name": "Hard Bullet",
+        "confidence": "HIGH",
+        "reason": "VR physics sandbox shooter with no defined completion, 25.9 hours of sandbox play"
+      },
+      {
+        "appid": 2878600,
+        "name": "Harry Potter: Quidditch Champions",
+        "confidence": "HIGH",
+        "reason": "Sports/competitive game focused on multiplayer matches"
+      },
+      {
+        "appid": 394510,
+        "name": "HELLDIVERS\u2122",
+        "confidence": "HIGH",
+        "reason": "Co-op multiplayer shooter with procedural missions, no campaign ending"
+      },
+      {
+        "appid": 553850,
+        "name": "HELLDIVERS\u2122 2",
+        "confidence": "HIGH",
+        "reason": "Cooperative multiplayer game with no story completion"
+      },
+      {
+        "appid": 304410,
+        "name": "Hexcells Infinite",
+        "confidence": "HIGH",
+        "reason": "Infinite puzzle generator with no completion state"
+      },
+      {
+        "appid": 589290,
+        "name": "Holdfast: Nations At War",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only tactical warfare game with no campaign or story mode"
+      },
+      {
+        "appid": 2635410,
+        "name": "Holdfast: Nations At War - Testing Branch",
+        "confidence": "HIGH",
+        "reason": "Multiplayer warfare game with no completion state"
+      },
+      {
+        "appid": 450540,
+        "name": "Hot Dogs, Horseshoes & Hand Grenades",
+        "confidence": "HIGH",
+        "reason": "VR weapon sandbox with no story or completion objectives"
+      },
+      {
+        "appid": 613100,
+        "name": "House Flipper",
+        "confidence": "HIGH",
+        "reason": "Simulation game focused on endless house renovation activities"
+      },
+      {
+        "appid": 448280,
+        "name": "Job Simulator",
+        "confidence": "HIGH",
+        "reason": "VR sandbox simulation with no clear ending, designed for repeated play"
+      },
+      {
+        "appid": 500,
+        "name": "Left 4 Dead",
+        "confidence": "MEDIUM",
+        "reason": "Co-op survival game designed for replayability, no traditional story completion"
+      },
+      {
+        "appid": 550,
+        "name": "Left 4 Dead 2",
+        "confidence": "MEDIUM",
+        "reason": "Co-op survival game designed for replayability, campaigns meant to be replayed"
+      },
+      {
+        "appid": 993090,
+        "name": "Lossless Scaling",
+        "confidence": "HIGH",
+        "reason": "Utility/tool software with no completion state"
+      },
+      {
+        "appid": 213850,
+        "name": "Magic 2014 ",
+        "confidence": "HIGH",
+        "reason": "Card game focused on multiplayer and collection, no story completion"
+      },
+      {
+        "appid": 1267910,
+        "name": "Melvor Idle",
+        "confidence": "HIGH",
+        "reason": "Idle RPG with continuous progression and no defined completion state"
+      },
+      {
+        "appid": 314160,
+        "name": "Microsoft Flight Simulator X: Steam Edition",
+        "confidence": "HIGH",
+        "reason": "Flight simulation with no story completion state"
+      },
+      {
+        "appid": 1971870,
+        "name": "Mortal Kombat 1",
+        "confidence": "HIGH",
+        "reason": "Fighting game focused on multiplayer/ongoing matches"
+      },
+      {
+        "appid": 976310,
+        "name": "Mortal Kombat 11",
+        "confidence": "HIGH",
+        "reason": "Fighting game focused on multiplayer and endless matches"
+      },
+      {
+        "appid": 237110,
+        "name": "Mortal Kombat Komplete Edition",
+        "confidence": "MEDIUM",
+        "reason": "Fighting game primarily focused on multiplayer and arcade modes"
+      },
+      {
+        "appid": 307780,
+        "name": "Mortal Kombat X",
+        "confidence": "HIGH",
+        "reason": "Fighting game focused on multiplayer competition"
+      },
+      {
+        "appid": 22100,
+        "name": "Mount & Blade",
+        "confidence": "HIGH",
+        "reason": "Open-ended medieval sandbox RPG with no definitive ending"
+      },
+      {
+        "appid": 48720,
+        "name": "Mount & Blade: With Fire and Sword",
+        "confidence": "HIGH",
+        "reason": "Open-world medieval sandbox with no defined ending"
+      },
+      {
+        "appid": 296470,
+        "name": "Mount Your Friends",
+        "confidence": "HIGH",
+        "reason": "Arcade party game with no story or completion"
+      },
+      {
+        "appid": 272510,
+        "name": "NARUTO SHIPPUDEN: Ultimate Ninja STORM Revolution",
+        "confidence": "MEDIUM",
+        "reason": "Fighting game focused on multiplayer competition, minimal story content"
+      },
+      {
+        "appid": 4920,
+        "name": "Natural Selection 2",
+        "confidence": "HIGH",
+        "reason": "Asymmetric multiplayer shooter with no story campaign or completion state"
+      },
+      {
+        "appid": 275850,
+        "name": "No Man's Sky",
+        "confidence": "HIGH",
+        "reason": "Space exploration sandbox with no completion state, endless procedural universe"
+      },
+      {
+        "appid": 200110,
+        "name": "Nosgoth",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-only asymmetrical PvP game (now discontinued)"
+      },
+      {
+        "appid": 104900,
+        "name": "ORION: Prelude",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused co-op shooter with no story campaign"
+      },
+      {
+        "appid": 455400,
+        "name": "PAC-MAN 256",
+        "confidence": "HIGH",
+        "reason": "Endless arcade game with no completion state"
+      },
+      {
+        "appid": 555160,
+        "name": "Pavlov VR",
+        "confidence": "HIGH",
+        "reason": "Multiplayer VR shooter with no single-player campaign or completion"
+      },
+      {
+        "appid": 218620,
+        "name": "PAYDAY 2",
+        "confidence": "HIGH",
+        "reason": "Cooperative multiplayer heist game with endless mission replayability"
+      },
+      {
+        "appid": 24240,
+        "name": "PAYDAY: The Heist",
+        "confidence": "HIGH",
+        "reason": "Cooperative multiplayer heist game focused on replayability"
+      },
+      {
+        "appid": 621060,
+        "name": "PC Building Simulator",
+        "confidence": "HIGH",
+        "reason": "Simulation game with endless PC building scenarios and free build mode"
+      },
+      {
+        "appid": 264140,
+        "name": "Pixel Piracy",
+        "confidence": "MEDIUM",
+        "reason": "Sandbox piracy game with procedural elements and no clear completion"
+      },
+      {
+        "appid": 246620,
+        "name": "Plague Inc: Evolved",
+        "confidence": "HIGH",
+        "reason": "Strategy simulation focused on scenarios, no story completion"
+      },
+      {
+        "appid": 234630,
+        "name": "Project CARS",
+        "confidence": "HIGH",
+        "reason": "Racing simulation focused on multiplayer and time trials, no story campaign"
+      },
+      {
+        "appid": 1968340,
+        "name": "Project Gunship",
+        "confidence": "MEDIUM",
+        "reason": "Action/simulation game, minimal playtime suggests trial"
+      },
+      {
+        "appid": 8600,
+        "name": "RACE 07",
+        "confidence": "HIGH",
+        "reason": "Racing simulation game with no clear completion point"
+      },
+      {
+        "appid": 211500,
+        "name": "RaceRoom Racing Experience ",
+        "confidence": "HIGH",
+        "reason": "Racing simulation game with no story completion, focused on endless racing"
+      },
+      {
+        "appid": 201570,
+        "name": "Really Big Sky",
+        "confidence": "HIGH",
+        "reason": "Endless procedural shoot-em-up with no clear completion"
+      },
+      {
+        "appid": 234190,
+        "name": "Receiver",
+        "confidence": "MEDIUM",
+        "reason": "Experimental gun handling game with procedural elements, no clear ending"
+      },
+      {
+        "appid": 222730,
+        "name": "Reus",
+        "confidence": "HIGH",
+        "reason": "God game/simulation with endless planet creation gameplay"
+      },
+      {
+        "appid": 35450,
+        "name": "Rising Storm/Red Orchestra 2 Multiplayer",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused tactical shooter with no completion state"
+      },
+      {
+        "appid": 248820,
+        "name": "Risk of Rain (2013)",
+        "confidence": "HIGH",
+        "reason": "Roguelike with endless runs, no story completion"
+      },
+      {
+        "appid": 285330,
+        "name": "RollerCoaster Tycoon 2: Triple Thrill Pack",
+        "confidence": "HIGH",
+        "reason": "Business simulation game with no fixed ending"
+      },
+      {
+        "appid": 285310,
+        "name": "RollerCoaster Tycoon: Deluxe",
+        "confidence": "HIGH",
+        "reason": "Business simulation game with no fixed ending"
+      },
+      {
+        "appid": 4760,
+        "name": "Rome: Total War",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game designed for endless replayability across campaigns"
+      },
+      {
+        "appid": 4770,
+        "name": "Rome: Total War - Alexander",
+        "confidence": "MEDIUM",
+        "reason": "Strategy expansion with historical campaigns but designed for replayability"
+      },
+      {
+        "appid": 220700,
+        "name": "RPG Maker VX Ace",
+        "confidence": "HIGH",
+        "reason": "Game creation tool with no completion state, used for making games"
+      },
+      {
+        "appid": 235900,
+        "name": "RPG Maker XP",
+        "confidence": "HIGH",
+        "reason": "Game development tool with no completion objective"
+      },
+      {
+        "appid": 1343400,
+        "name": "RuneScape",
+        "confidence": "HIGH",
+        "reason": "MMORPG with no clear completion state, designed for endless gameplay"
+      },
+      {
+        "appid": 258760,
+        "name": "Scania Truck Driving Simulator",
+        "confidence": "HIGH",
+        "reason": "Driving simulation with no completion state, endless gameplay"
+      },
+      {
+        "appid": 1172620,
+        "name": "Sea of Thieves",
+        "confidence": "HIGH",
+        "reason": "Multiplayer pirate adventure with no defined ending, continuous content updates"
+      },
+      {
+        "appid": 8930,
+        "name": "Sid Meier's Civilization V",
+        "confidence": "HIGH",
+        "reason": "Strategy game with no real completion state, designed for endless replayability"
+      },
+      {
+        "appid": 24780,
+        "name": "SimCity 4 Deluxe",
+        "confidence": "HIGH",
+        "reason": "City-building simulation with no definitive completion"
+      },
+      {
+        "appid": 239350,
+        "name": "Spelunky",
+        "confidence": "HIGH",
+        "reason": "Classic endless roguelike platformer with no story completion"
+      },
+      {
+        "appid": 6060,
+        "name": "Star Wars: Battlefront 2 (Classic, 2005)",
+        "confidence": "HIGH",
+        "reason": "Primarily multiplayer/skirmish focused game with minimal single-player campaign"
+      },
+      {
+        "appid": 1237950,
+        "name": "STAR WARS\u2122 Battlefront\u2122 II",
+        "confidence": "MEDIUM",
+        "reason": "Primarily multiplayer-focused with short campaign, main focus is endless multiplayer"
+      },
+      {
+        "appid": 413150,
+        "name": "Stardew Valley",
+        "confidence": "HIGH",
+        "reason": "Farming simulation/life sim with no clear ending, designed for continuous play"
+      },
+      {
+        "appid": 281990,
+        "name": "Stellaris",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game with no fixed ending"
+      },
+      {
+        "appid": 1261040,
+        "name": "Streamer Life Simulator",
+        "confidence": "HIGH",
+        "reason": "Life simulation game with no defined ending, focuses on ongoing progression"
+      },
+      {
+        "appid": 310950,
+        "name": "Street Fighter V",
+        "confidence": "HIGH",
+        "reason": "Competitive fighting game with no story completion focus"
+      },
+      {
+        "appid": 221640,
+        "name": "Super Hexagon",
+        "confidence": "HIGH",
+        "reason": "Arcade-style endless survival game focused on high scores"
+      },
+      {
+        "appid": 233720,
+        "name": "Surgeon Simulator",
+        "confidence": "MEDIUM",
+        "reason": "Comedy simulation game focused on scenarios rather than story completion"
+      },
+      {
+        "appid": 207750,
+        "name": "Symphony",
+        "confidence": "MEDIUM",
+        "reason": "Music-based shoot-em-up with procedural elements, no clear ending"
+      },
+      {
+        "appid": 286160,
+        "name": "Tabletop Simulator",
+        "confidence": "HIGH",
+        "reason": "Simulation tool for playing various games, no completion"
+      },
+      {
+        "appid": 440,
+        "name": "Team Fortress 2",
+        "confidence": "HIGH",
+        "reason": "Team-based multiplayer shooter with no story campaign or completion state"
+      },
+      {
+        "appid": 1167630,
+        "name": "Teardown",
+        "confidence": "MEDIUM",
+        "reason": "Physics sandbox with campaign mode but primarily endless creative destruction gameplay"
+      },
+      {
+        "appid": 105600,
+        "name": "Terraria",
+        "confidence": "HIGH",
+        "reason": "Open-world sandbox with no defined ending"
+      },
+      {
+        "appid": 250900,
+        "name": "The Binding of Isaac: Rebirth",
+        "confidence": "HIGH",
+        "reason": "Endless roguelike with procedural generation and no clear completion point"
+      },
+      {
+        "appid": 306130,
+        "name": "The Elder Scrolls Online",
+        "confidence": "HIGH",
+        "reason": "MMORPG with ongoing content and no definitive completion"
+      },
+      {
+        "appid": 1017180,
+        "name": "The Long Drive",
+        "confidence": "HIGH",
+        "reason": "Sandbox driving simulator with no definitive ending"
+      },
+      {
+        "appid": 47890,
+        "name": "The Sims\u2122 3",
+        "confidence": "HIGH",
+        "reason": "Life simulation sandbox game with no completion state"
+      },
+      {
+        "appid": 217060,
+        "name": "Total War Battles: SHOGUN",
+        "confidence": "HIGH",
+        "reason": "Strategy game with endless battle scenarios, no story completion"
+      },
+      {
+        "appid": 10500,
+        "name": "Total War: EMPIRE - Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Strategy game with no real completion state, designed for endless campaigns"
+      },
+      {
+        "appid": 4700,
+        "name": "Total War: MEDIEVAL II - Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game designed for endless replayability across campaigns"
+      },
+      {
+        "appid": 34030,
+        "name": "Total War: NAPOLEON - Definitive Edition",
+        "confidence": "HIGH",
+        "reason": "Strategy game with multiple campaigns but no single completion state"
+      },
+      {
+        "appid": 1937780,
+        "name": "Total War: PHARAOH",
+        "confidence": "HIGH",
+        "reason": "Strategy game with no fixed completion state"
+      },
+      {
+        "appid": 2951630,
+        "name": "Total War: PHARAOH DYNASTIES",
+        "confidence": "HIGH",
+        "reason": "Strategy game with no definitive completion, endless campaigns"
+      },
+      {
+        "appid": 214950,
+        "name": "Total War: ROME II - Emperor Edition",
+        "confidence": "HIGH",
+        "reason": "Grand strategy game with endless replayability, no definitive completion"
+      },
+      {
+        "appid": 34330,
+        "name": "Total War: SHOGUN 2",
+        "confidence": "HIGH",
+        "reason": "Strategy game with campaign modes but designed for replayability"
+      },
+      {
+        "appid": 24010,
+        "name": "Train Simulator Classic",
+        "confidence": "HIGH",
+        "reason": "Simulation game with no completion state"
+      },
+      {
+        "appid": 23490,
+        "name": "Tropico 3 - Steam Special Edition",
+        "confidence": "HIGH",
+        "reason": "City-building simulation game with no clear ending"
+      },
+      {
+        "appid": 57600,
+        "name": "Tropico 3: Absolute Power",
+        "confidence": "HIGH",
+        "reason": "City-building simulation with no completion state"
+      },
+      {
+        "appid": 57690,
+        "name": "Tropico 4",
+        "confidence": "HIGH",
+        "reason": "City-building simulation focused on ongoing management"
+      },
+      {
+        "appid": 302060,
+        "name": "Trucks & Trailers",
+        "confidence": "HIGH",
+        "reason": "Driving simulation with no story completion"
+      },
+      {
+        "appid": 1468720,
+        "name": "Ultimate Epic Battle Simulator 2",
+        "confidence": "HIGH",
+        "reason": "Battle simulation sandbox game with no story or completion state"
+      },
+      {
+        "appid": 230290,
+        "name": "Universe Sandbox",
+        "confidence": "HIGH",
+        "reason": "Physics simulation sandbox with no completion objective"
+      },
+      {
+        "appid": 72200,
+        "name": "Universe Sandbox Legacy",
+        "confidence": "HIGH",
+        "reason": "Physics simulation sandbox tool with no completion state"
+      },
+      {
+        "appid": 304930,
+        "name": "Unturned",
+        "confidence": "HIGH",
+        "reason": "Survival multiplayer sandbox game with no story completion"
+      },
+      {
+        "appid": 896890,
+        "name": "VR Paradise",
+        "confidence": "HIGH",
+        "reason": "VR experience/tool with no completion state or story progression"
+      },
+      {
+        "appid": 431960,
+        "name": "Wallpaper Engine",
+        "confidence": "HIGH",
+        "reason": "Utility software for animated wallpapers, not a game with completion state"
+      },
+      {
+        "appid": 236390,
+        "name": "War Thunder",
+        "confidence": "HIGH",
+        "reason": "Multiplayer combat game with no story or completion state"
+      },
+      {
+        "appid": 375230,
+        "name": "Warhammer 40,000: Eternal Crusade",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused shooter with no single-player campaign or clear ending"
+      },
+      {
+        "appid": 217200,
+        "name": "Worms Armageddon",
+        "confidence": "HIGH",
+        "reason": "Multiplayer-focused turn-based combat game, endless replayability"
+      },
+      {
+        "appid": 7660,
+        "name": "X-COM: Apocalypse",
+        "confidence": "MEDIUM",
+        "reason": "Turn-based strategy game that can be replayed endlessly despite having campaign structure"
+      },
+      {
+        "appid": 7730,
+        "name": "X-COM: Interceptor",
+        "confidence": "MEDIUM",
+        "reason": "Space combat simulation with strategy elements, designed for replayability"
+      },
+      {
+        "appid": 7650,
+        "name": "X-COM: Terror from the Deep",
+        "confidence": "MEDIUM",
+        "reason": "Turn-based strategy game that can be replayed endlessly despite having campaign structure"
+      },
+      {
+        "appid": 7760,
+        "name": "X-COM: UFO Defense",
+        "confidence": "MEDIUM",
+        "reason": "Turn-based strategy game that can be replayed endlessly despite having campaign structure"
+      },
+      {
+        "appid": 2820,
+        "name": "X3: Terran Conflict",
+        "confidence": "HIGH",
+        "reason": "Open-ended space trading/combat simulation with no definitive ending"
+      }
+    ]
+  }
+}

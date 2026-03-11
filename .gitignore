@@ -1,0 +1,8 @@
+.config/
+.cache/
+__pycache__/
+venv/
+dist/
+build/
+*.spec
+*.pyc
