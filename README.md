@@ -81,22 +81,15 @@ Creates `dist/SteamLibraryOrganizer.exe`.
 - AI-only classification using Claude API (all 569 games sent every run)
 - Wrote collections to Steam's local cloud storage file
 
-### v0.2 — Iteration (current, pre-rewrite)
-**What went well:**
+### v0.2 — Iteration
 - Achievement data and existing user collections as AI context improved accuracy
 - Batch processing with progress save/resume handled interruptions
+- Collections sync fix (updates Steam's sync metadata files)
+- Added NOT_A_GAME category, manual overrides, saved classifications
 
-**What didn't go well:**
-- AI classification was inconsistent between runs — same games got different categories each time
-- `--reclassify` flag was destructive, wiped out previously correct classifications
-- Collections didn't sync across machines (fixed: now updates Steam's sync metadata files)
-- Every test run cost ~$0.70 in API credits, adding up fast during iteration
-- Anthropic API key requirement is a barrier for other users
-- Code grew messy from incremental changes across sessions
-
-**Decisions for v1.0 rewrite:**
-- Hybrid approach: rule-based classification first (free), AI for ambiguous games only (optional)
-- Classifications saved permanently — AI never re-runs on already-classified games
-- Manual overrides always win over both rules and AI
-- Added NOT_A_GAME category for demos, tools, and non-game software
-- Full rewrite for code clarity
+### v1.0 — Hybrid rewrite (current)
+- **Rule-based classification engine** — Uses Steam Store API (game type, genres, categories), achievement patterns, and playtime to classify ~70-80% of games for free
+- **AI is now optional** — `anthropic` package and API key no longer required. Rules handle most games; AI only classifies the ambiguous remainder
+- **Steam Store API integration** — Fetches game type/genres/categories, cached in `.cache/store_details.json`
+- **Removed `--reclassify` flag** and batch progress save/resume (no longer needed since AI only handles small batches)
+- **Code rewrite** — `main()` broken into helper functions, clean top-to-bottom flow

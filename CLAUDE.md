@@ -34,10 +34,11 @@ No test suite exists.
 - **Config management** — API keys and Steam ID in `.config/settings.json`. Priority: env vars > saved config > interactive prompt.
 - **Steam API integration** — Fetches owned games, playtime, and per-game achievements. Rate-limited at 0.5s between calls.
 - **Steam collections I/O** — Reads/writes Steam's `cloud-storage-namespace-1.json` in userdata. Also updates `cloud-storage-namespace-1.modified.json` and `cloud-storage-namespaces.json` so Steam syncs changes to the cloud. Requires Steam to be closed.
-- **Caching** — Library data cached 24h in `.cache/library.json`.
+- **Caching** — Library data cached 24h in `.cache/library.json`. Store API details cached permanently in `.cache/store_details.json`.
 - **Saved classifications** — Final results persisted in `.cache/classifications_final.json`. Only new games get classified on subsequent runs.
 - **Manual overrides** — User corrections stored in `.config/overrides.json`. Always take priority over rules and AI.
-- **Rule-based classification** — Uses Steam tags, genres, playtime, and achievements to classify without AI.
+- **Steam Store API** — `fetch_store_details()` gets game type/genres/categories from `store.steampowered.com/api/appdetails`. Rate-limited at 0.3s between calls.
+- **Rule-based classification** — `classify_by_rules()` applies 9 priority rules: store type, name patterns, story achievements, high achievement %, multiplayer-only, MMO, genre-based, unplayed SP. `classify_all_games()` orchestrates: overrides → saved → rules → AI → fallback.
 - **AI classification (optional)** — Sends ambiguous games to Claude for classification. Only runs if Anthropic API key is provided.
 - **Output** — Rich tables in terminal, writes Steam collections, optional JSON report.
 
