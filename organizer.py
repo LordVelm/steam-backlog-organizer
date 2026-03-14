@@ -37,16 +37,17 @@ console = Console()
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 
-# When running as a PyInstaller exe, __file__ points to a temp directory.
-# Use the exe's actual location so cache/config persist between runs.
-if getattr(sys, "frozen", False):
-    _BASE_DIR = Path(sys.executable).parent
+# Use AppData on Windows so both the script and exe share the same data.
+# Falls back to ~/.steam-backlog-organizer on other platforms.
+_APPDATA = os.environ.get("APPDATA")
+if _APPDATA:
+    _DATA_DIR = Path(_APPDATA) / "SteamBacklogOrganizer"
 else:
-    _BASE_DIR = Path(__file__).parent
+    _DATA_DIR = Path.home() / ".steam-backlog-organizer"
 
-CONFIG_DIR = _BASE_DIR / ".config"
+CONFIG_DIR = _DATA_DIR / "config"
 CONFIG_FILE = CONFIG_DIR / "settings.json"
-CACHE_DIR = _BASE_DIR / ".cache"
+CACHE_DIR = _DATA_DIR / "cache"
 LIBRARY_CACHE = CACHE_DIR / "library.json"
 CLASSIFICATIONS_FILE = CACHE_DIR / "classifications_final.json"
 STORE_CACHE = CACHE_DIR / "store_details.json"
