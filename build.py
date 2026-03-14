@@ -13,7 +13,6 @@ if "--cli" in sys.argv:
             "--name=SteamBacklogOrganizer-CLI",
             "--console",
             "--clean",
-            "--hidden-import=anthropic",
             "--hidden-import=rich",
         ]
     )
@@ -26,7 +25,6 @@ else:
             "--name=SteamBacklogOrganizer",
             "--windowed",
             "--clean",
-            "--hidden-import=anthropic",
             "--hidden-import=rich",
             "--hidden-import=customtkinter",
             "--collect-data=customtkinter",

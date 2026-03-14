@@ -11,24 +11,25 @@ Results are written directly to your Steam library as collections (synced across
 
 ## How It Works
 
-Classification happens in two layers:
+Classification uses **rule-based logic** that analyzes your Steam data:
 
-1. **Rule-based (free, no API key)** — Uses Steam tags, genres, playtime, and achievement data to classify the obvious cases. Handles ~70-80% of games automatically.
-2. **AI-powered (optional, requires Anthropic API key)** — For ambiguous games that rules can't confidently classify, Claude AI makes the call using game knowledge, achievement names, and playtime context.
+- **Steam Store data** — Game type (demo, tool, DLC), genres, categories (single-player, multiplayer)
+- **Achievement data** — Story-completion achievement names, achievement percentage
+- **Playtime** — Hours played relative to game type
+- **Your existing Steam collections** — Used as hints for classification
 
-You get useful results out of the box. AI makes them better.
+No external AI or paid APIs needed beyond the free Steam Web API key.
 
 ## Requirements
 
 - Python 3.12+
 - A [Steam Web API key](https://steamcommunity.com/dev/apikey) (free)
 - Your Steam profile's game details set to **Public**
-- *(Optional)* An [Anthropic API key](https://console.anthropic.com/settings/keys) for AI classification
 
 ## Setup
 
 ```powershell
-cd steam-library-organizer
+cd steam-backlog-organizer
 python -m venv venv
 
 # Windows PowerShell:
@@ -36,12 +37,20 @@ python -m venv venv
 # Linux/Mac:
 source venv/bin/activate
 
-pip install requests rich
-# Optional, for AI classification:
-pip install anthropic
+pip install requests rich customtkinter
 ```
 
 ## Usage
+
+### GUI
+
+```powershell
+python gui.py
+```
+
+Or download the standalone `.exe` from [Releases](https://github.com/LordVelm/steam-backlog-organizer/releases).
+
+### CLI
 
 ```powershell
 # First run — prompts for Steam API key and Steam ID
@@ -56,24 +65,25 @@ python organizer.py --override
 
 ## Features
 
-- **Saved classifications** — Results persist between runs. Only new games get classified, so you never lose corrections.
-- **Manual overrides** — Use `--override` to fix any game the rules or AI got wrong. Overrides always take priority.
-- **Cloud sync** — Collections sync across machines via Steam Cloud, not just stored locally.
-- **Caching** — Library and achievement data cached locally to avoid redundant Steam API calls.
+- **No paid APIs** — Fully rule-based classification using Steam's own data. Free to run.
+- **Saved classifications** — Results persist between runs. Only new games get classified.
+- **Manual overrides** — Fix any game the rules got wrong. Overrides always take priority.
+- **Cloud sync** — Collections sync across machines via Steam Cloud.
+- **Caching** — Library and achievement data cached locally to avoid redundant API calls.
+- **Error handling** — Clear messages for network issues, invalid API keys, and file errors.
 
 ## Building a Standalone Executable
 
 ```powershell
 pip install pyinstaller
-python build.py
+python build.py          # GUI exe → dist/SteamBacklogOrganizer.exe
+python build.py --cli    # CLI exe → dist/SteamBacklogOrganizer-CLI.exe
 ```
-
-Creates `dist/SteamLibraryOrganizer.exe`.
 
 ## Important Notes
 
 - **Steam must be closed** when writing collections
-- **API keys are stored locally** in `.config/settings.json` — never commit this file
+- **API keys are stored locally** in `%APPDATA%/SteamBacklogOrganizer/config/settings.json` — not embedded in the exe
 
 ## Development Log
 
@@ -87,9 +97,13 @@ Creates `dist/SteamLibraryOrganizer.exe`.
 - Collections sync fix (updates Steam's sync metadata files)
 - Added NOT_A_GAME category, manual overrides, saved classifications
 
-### v1.0 — Hybrid rewrite (current)
+### v1.0 — Hybrid rewrite
 - **Rule-based classification engine** — Uses Steam Store API (game type, genres, categories), achievement patterns, and playtime to classify ~70-80% of games for free
-- **AI is now optional** — `anthropic` package and API key no longer required. Rules handle most games; AI only classifies the ambiguous remainder
-- **Steam Store API integration** — Fetches game type/genres/categories, cached in `.cache/store_details.json`
-- **Removed `--reclassify` flag** and batch progress save/resume (no longer needed since AI only handles small batches)
-- **Code rewrite** — `main()` broken into helper functions, clean top-to-bottom flow
+- **AI became optional** — Rules handled most games; AI only classified the ambiguous remainder
+- **Steam Store API integration** — Fetches game type/genres/categories with permanent caching
+
+### v2.0 — Pure rules, no AI (current)
+- **Removed AI/Anthropic dependency entirely** — No paid API keys needed
+- **Expanded rules from 9 to 14** — Covers all cases including moderate achievement + playtime heuristics, significant SP playtime detection, and genre-based fallbacks
+- **GUI** — CustomTkinter app with Simple and Detailed view modes
+- **Error handling** — Timeouts on all API calls, clear error messages for network/auth/permission failures, graceful handling of corrupt cache files

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """
 Steam Backlog Organizer
-Categorizes your Steam library using a hybrid approach:
-  - Rule-based classification (free) handles most games
-  - Optional AI classification (requires Anthropic API key) for ambiguous ones
+Categorizes your Steam library using rule-based classification.
 
 Results are written directly to your Steam library as collections:
   Completed | In Progress / Backlog | Endless | Not a Game
@@ -18,13 +16,6 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-
-try:
-    import anthropic
-
-    HAS_ANTHROPIC = True
-except ImportError:
-    HAS_ANTHROPIC = False
 
 import requests
 from rich.console import Console
@@ -103,9 +94,12 @@ def load_saved_config() -> dict:
 
 def save_config(config: dict):
     """Save API keys and Steam ID to local config file."""
-    CONFIG_DIR.mkdir(exist_ok=True)
-    CONFIG_FILE.write_text(json.dumps(config, indent=2))
-    console.print(f"[dim]Settings saved to {CONFIG_FILE}[/dim]")
+    try:
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        CONFIG_FILE.write_text(json.dumps(config, indent=2))
+        console.print(f"[dim]Settings saved to {CONFIG_FILE}[/dim]")
+    except OSError as e:
+        console.print(f"[red]Could not save settings to {CONFIG_FILE}: {e}[/red]")
 
 
 def run_setup(force: bool = False):
@@ -145,26 +139,6 @@ def run_setup(force: bool = False):
             saved["steam_api_key"] = new_key
             updated = True
 
-    # Anthropic API Key (optional)
-    current_anthropic_key = saved.get("anthropic_api_key", "")
-    if current_anthropic_key and not force:
-        masked = current_anthropic_key[:7] + "..." + current_anthropic_key[-4:]
-        console.print(f"[dim]Anthropic API Key: {masked} (saved)[/dim]")
-    else:
-        console.print()
-        console.print(
-            "[bold]Anthropic API Key (optional)[/bold]\n"
-            "  For AI-powered classification of ambiguous games.\n"
-            "  Get one here: [link=https://console.anthropic.com/settings/keys]"
-            "https://console.anthropic.com/settings/keys[/link]\n"
-            "  [dim]Leave blank to use rule-based classification only (free).[/dim]\n"
-        )
-        hint = f" (Enter to keep current)" if current_anthropic_key else ""
-        new_key = Prompt.ask(f"  Anthropic API Key{hint}", default="").strip()
-        if new_key:
-            saved["anthropic_api_key"] = new_key
-            updated = True
-
     # Steam ID
     current_steam_id = saved.get("steam_id", "")
     if current_steam_id and not force:
@@ -200,29 +174,47 @@ def run_setup(force: bool = False):
 
 def resolve_vanity_url(api_key: str, vanity_name: str) -> str | None:
     """Resolve a Steam vanity URL name to a 64-bit Steam ID."""
-    resp = requests.get(
-        f"{STEAM_API_BASE}/ISteamUser/ResolveVanityURL/v1/",
-        params={"key": api_key, "vanityurl": vanity_name},
-    )
-    data = resp.json().get("response", {})
-    if data.get("success") == 1:
-        return data["steamid"]
-    return None
+    try:
+        resp = requests.get(
+            f"{STEAM_API_BASE}/ISteamUser/ResolveVanityURL/v1/",
+            params={"key": api_key, "vanityurl": vanity_name},
+            timeout=15,
+        )
+        if resp.status_code == 403:
+            raise ValueError("Invalid Steam API key. Check your key at steamcommunity.com/dev/apikey")
+        resp.raise_for_status()
+        data = resp.json().get("response", {})
+        if data.get("success") == 1:
+            return data["steamid"]
+        return None
+    except requests.ConnectionError:
+        raise ConnectionError("Network error — check your internet connection.")
+    except requests.Timeout:
+        raise ConnectionError("Steam API timed out — try again later.")
 
 
 def get_owned_games(api_key: str, steam_id: str) -> list[dict]:
     """Fetch all owned games with playtime and app info."""
-    resp = requests.get(
-        f"{STEAM_API_BASE}/IPlayerService/GetOwnedGames/v1/",
-        params={
-            "key": api_key,
-            "steamid": steam_id,
-            "include_appinfo": True,
-            "include_played_free_games": True,
-        },
-    )
-    data = resp.json().get("response", {})
-    return data.get("games", [])
+    try:
+        resp = requests.get(
+            f"{STEAM_API_BASE}/IPlayerService/GetOwnedGames/v1/",
+            params={
+                "key": api_key,
+                "steamid": steam_id,
+                "include_appinfo": True,
+                "include_played_free_games": True,
+            },
+            timeout=30,
+        )
+        if resp.status_code == 403:
+            raise ValueError("Invalid Steam API key. Check your key at steamcommunity.com/dev/apikey")
+        resp.raise_for_status()
+        data = resp.json().get("response", {})
+        return data.get("games", [])
+    except requests.ConnectionError:
+        raise ConnectionError("Network error while fetching game library — check your internet connection.")
+    except requests.Timeout:
+        raise ConnectionError("Steam API timed out while fetching game library — try again later.")
 
 
 def get_player_achievements(api_key: str, steam_id: str, app_id: int) -> dict | None:
@@ -231,6 +223,7 @@ def get_player_achievements(api_key: str, steam_id: str, app_id: int) -> dict | 
         resp = requests.get(
             f"{STEAM_API_BASE}/ISteamUserStats/GetPlayerAchievements/v1/",
             params={"key": api_key, "steamid": steam_id, "appid": app_id},
+            timeout=15,
         )
         if resp.status_code != 200:
             return None
@@ -250,7 +243,7 @@ def get_player_achievements(api_key: str, steam_id: str, app_id: int) -> dict | 
                 a["apiname"] for a in achievements if a.get("achieved")
             ][:20],  # cap to avoid huge payloads
         }
-    except Exception:
+    except (requests.RequestException, json.JSONDecodeError, KeyError):
         return None
 
 
@@ -269,8 +262,11 @@ def load_store_cache() -> dict:
 
 def save_store_cache(cache: dict):
     """Save store details cache."""
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    STORE_CACHE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        STORE_CACHE.write_text(json.dumps(cache, indent=2), encoding="utf-8")
+    except OSError as e:
+        console.print(f"[yellow]Warning: Could not save store cache: {e}[/yellow]")
 
 
 def fetch_store_details(app_id: int) -> dict | None:
@@ -279,8 +275,11 @@ def fetch_store_details(app_id: int) -> dict | None:
         resp = requests.get(
             STEAM_STORE_API,
             params={"appids": app_id, "l": "english"},
-            timeout=10,
+            timeout=15,
         )
+        if resp.status_code == 429:
+            time.sleep(2)  # back off on rate limit
+            return None
         if resp.status_code != 200:
             return None
         data = resp.json()
@@ -295,7 +294,7 @@ def fetch_store_details(app_id: int) -> dict | None:
                 c.get("description", "") for c in details.get("categories", [])
             ],
         }
-    except Exception:
+    except (requests.RequestException, json.JSONDecodeError, KeyError):
         return None
 
 
@@ -427,25 +426,32 @@ def load_steam_collections(userdata_path: Path) -> tuple[list, Path]:
     if not cloud_storage.exists():
         return [], cloud_storage
 
-    data = json.loads(cloud_storage.read_text(encoding="utf-8"))
-    return data, cloud_storage
+    try:
+        data = json.loads(cloud_storage.read_text(encoding="utf-8"))
+        return data, cloud_storage
+    except (json.JSONDecodeError, OSError) as e:
+        console.print(f"[red]Could not read Steam collections file: {e}[/red]")
+        return [], cloud_storage
 
 
 def get_existing_collections(cloud_data: list) -> dict:
     """Extract user collections from cloud storage data."""
     collections = {}
     for entry in cloud_data:
-        key = entry[0]
-        meta = entry[1]
-        if key.startswith("user-collections.") and not meta.get("is_deleted"):
-            value = json.loads(meta.get("value", "{}"))
-            if value.get("name"):
-                collections[value["name"]] = {
-                    "key": key,
-                    "id": value.get("id"),
-                    "added": value.get("added", []),
-                    "removed": value.get("removed", []),
-                }
+        try:
+            key = entry[0]
+            meta = entry[1]
+            if key.startswith("user-collections.") and not meta.get("is_deleted"):
+                value = json.loads(meta.get("value", "{}"))
+                if value.get("name"):
+                    collections[value["name"]] = {
+                        "key": key,
+                        "id": value.get("id"),
+                        "added": value.get("added", []),
+                        "removed": value.get("removed", []),
+                    }
+        except (json.JSONDecodeError, IndexError, KeyError, TypeError):
+            continue
     return collections
 
 
@@ -533,7 +539,10 @@ def write_collections_to_steam(
         version += 1
 
     # Write the collection data
-    cloud_path.write_text(json.dumps(cloud_data), encoding="utf-8")
+    try:
+        cloud_path.write_text(json.dumps(cloud_data), encoding="utf-8")
+    except OSError as e:
+        raise OSError(f"Could not write collections file ({cloud_path}): {e}")
 
     # Tell Steam these keys were modified locally so it syncs them to the cloud
     modified_path = cloud_path.with_name("cloud-storage-namespace-1.modified.json")
@@ -544,7 +553,10 @@ def write_collections_to_steam(
         except (json.JSONDecodeError, ValueError):
             existing_modified = []
     all_modified = list(set(existing_modified + modified_keys))
-    modified_path.write_text(json.dumps(all_modified), encoding="utf-8")
+    try:
+        modified_path.write_text(json.dumps(all_modified), encoding="utf-8")
+    except OSError as e:
+        raise OSError(f"Could not write modified keys file ({modified_path}): {e}")
 
     # Update the namespace version so Steam knows local state is newer
     namespaces_path = cloud_path.with_name("cloud-storage-namespaces.json")
@@ -558,6 +570,8 @@ def write_collections_to_steam(
             namespaces_path.write_text(json.dumps(namespaces), encoding="utf-8")
         except (json.JSONDecodeError, ValueError, IndexError):
             pass
+        except OSError as e:
+            raise OSError(f"Could not write namespaces file ({namespaces_path}): {e}")
 
 
 # ── Caching ──────────────────────────────────────────────────────────────────
@@ -565,13 +579,16 @@ def write_collections_to_steam(
 
 def save_library_cache(steam_id: str, games_data: list[dict]):
     """Cache the library data so we don't re-fetch from Steam on reruns."""
-    CACHE_DIR.mkdir(exist_ok=True)
-    cache = {
-        "steam_id": steam_id,
-        "timestamp": time.time(),
-        "games": games_data,
-    }
-    LIBRARY_CACHE.write_text(json.dumps(cache, indent=2))
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        cache = {
+            "steam_id": steam_id,
+            "timestamp": time.time(),
+            "games": games_data,
+        }
+        LIBRARY_CACHE.write_text(json.dumps(cache, indent=2))
+    except OSError as e:
+        console.print(f"[yellow]Warning: Could not save library cache: {e}[/yellow]")
 
 
 def load_library_cache(steam_id: str) -> tuple[list[dict], float] | None:
@@ -604,10 +621,13 @@ def load_saved_classifications() -> dict:
 
 def save_final_classifications(all_classified: list):
     """Save final classifications so future runs reuse them."""
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    CLASSIFICATIONS_FILE.write_text(
-        json.dumps(all_classified, indent=2), encoding="utf-8"
-    )
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        CLASSIFICATIONS_FILE.write_text(
+            json.dumps(all_classified, indent=2), encoding="utf-8"
+        )
+    except OSError as e:
+        console.print(f"[yellow]Warning: Could not save classifications: {e}[/yellow]")
 
 
 def load_overrides() -> dict:
@@ -622,8 +642,11 @@ def load_overrides() -> dict:
 
 def save_overrides(overrides: dict):
     """Save manual overrides to config."""
-    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
-    OVERRIDES_FILE.write_text(json.dumps(overrides, indent=2), encoding="utf-8")
+    try:
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        OVERRIDES_FILE.write_text(json.dumps(overrides, indent=2), encoding="utf-8")
+    except OSError as e:
+        console.print(f"[red]Could not save overrides: {e}[/red]")
 
 
 def run_override_menu(games_data: list, saved: dict):
@@ -700,10 +723,10 @@ def run_override_menu(games_data: list, saved: dict):
 # ── Classification engine ────────────────────────────────────────────────────
 
 
-def classify_by_rules(game: dict, store_info: dict | None) -> tuple[str, str] | None:
+def classify_by_rules(game: dict, store_info: dict | None) -> tuple[str, str]:
     """
     Classify a single game using rule-based logic.
-    Returns (category, reason) or None if the game is ambiguous.
+    Returns (category, reason). Always returns a classification.
 
     Priority order:
       1. Steam type = demo/tool/music/dlc → NOT_A_GAME
@@ -712,8 +735,14 @@ def classify_by_rules(game: dict, store_info: dict | None) -> tuple[str, str] | 
       4. High achievement % (≥80%) → COMPLETED
       5. Multiplayer-only (has MP, no SP) → ENDLESS
       6. MMO genre → ENDLESS
-      7. Unplayed single-player → IN_PROGRESS (backlog)
-      8. Otherwise → None (ambiguous)
+      7. Sandbox/strategy/simulation genres → ENDLESS
+      8. Moderate achievements + playtime → COMPLETED
+      9. Significant playtime in SP → COMPLETED
+      10. Sandbox/strategy/simulation (with SP) → ENDLESS
+      11. Unplayed single-player → IN_PROGRESS (backlog)
+      12. Unplayed, no store info → IN_PROGRESS
+      13. Low playtime in SP → IN_PROGRESS
+      14. Fallback → IN_PROGRESS
     """
     name = game.get("name", "")
     playtime = game.get("playtime_hours", 0)
@@ -762,19 +791,43 @@ def classify_by_rules(game: dict, store_info: dict | None) -> tuple[str, str] | 
     endless_genres = {"simulation", "strategy", "casual", "sports", "racing"}
     if genres and not has_sp:
         game_genres_set = set(genres)
+        if game_genres_set & endless_genres:
+            matched = game_genres_set & endless_genres
+            return ("ENDLESS", f"Genre: {', '.join(matched)}")
+
+    # Rule 8: Moderate achievement % with playtime suggests completion
+    if achievements and achievements.get("percentage", 0) >= 40 and playtime >= 5:
+        pct = achievements["percentage"]
+        return ("COMPLETED", f"Likely completed ({pct}% achievements, {playtime}h played)")
+
+    # Rule 9: Significant playtime with single-player suggests completion
+    if has_sp and playtime >= 15 and not achievements:
+        return ("COMPLETED", f"Likely completed (single-player, {playtime}h played)")
+
+    # Rule 10: Sandbox/strategy/simulation genres (even with SP tag) → ENDLESS
+    if genres:
+        game_genres_set = set(genres)
         if game_genres_set & endless_genres and not achievements:
             matched = game_genres_set & endless_genres
             return ("ENDLESS", f"Genre: {', '.join(matched)}")
 
-    # Rule 8: Unplayed with single-player → backlog
+    # Rule 11: Unplayed with single-player → backlog
     if playtime == 0 and has_sp:
         return ("IN_PROGRESS", "Unplayed single-player game (backlog)")
 
-    # Rule 9: Unplayed with no store info → default to IN_PROGRESS
+    # Rule 12: Unplayed with no store info → default to IN_PROGRESS
     if playtime == 0 and not store_info:
         return ("IN_PROGRESS", "Unplayed game (backlog)")
 
-    return None  # Ambiguous — needs AI or defaults to IN_PROGRESS
+    # Rule 13: Low playtime with single-player → still in progress
+    if has_sp and playtime > 0 and playtime < 15:
+        return ("IN_PROGRESS", f"Single-player with low playtime ({playtime}h)")
+
+    # Rule 14: Played but no other signals → default to IN_PROGRESS
+    if playtime > 0:
+        return ("IN_PROGRESS", f"Played ({playtime}h) but no clear completion signal")
+
+    return ("IN_PROGRESS", "No classification signals — defaulted to In Progress")
 
 
 def classify_all_games(
@@ -782,19 +835,16 @@ def classify_all_games(
     saved: dict,
     overrides: dict,
     store_cache: dict,
-    anthropic_key: str | None,
     progress_callback=None,
 ) -> list[dict]:
     """
-    Classify all games using the hybrid approach:
+    Classify all games using rule-based approach:
       1. Manual overrides → always win
-      2. Saved classifications → reuse as-is
-      3. Rule-based classification → handles ~70-80%
-      4. AI classification (optional) → handles ambiguous remainder
-      5. Fallback → IN_PROGRESS for anything still unclassified
+      2. NOT_A_GAME name patterns → override saved
+      3. Saved classifications → reuse as-is
+      4. Rule-based classification → handles all games
     """
     results = {}
-    unclassified = []
     rule_count = 0
     saved_count = 0
     override_count = 0
@@ -816,8 +866,6 @@ def classify_all_games(
             continue
 
         # Layer 1.5: NOT_A_GAME name patterns override saved classifications
-        # (a "dedicated server" or "soundtrack" is never a real game, even if
-        # a previous AI run classified it as something else)
         game_name = game.get("name", "")
         if NOT_A_GAME_NAME_PATTERNS.search(game_name):
             results[appid] = {
@@ -836,210 +884,28 @@ def classify_all_games(
             saved_count += 1
             continue
 
-        # Layer 3: Rule-based classification
+        # Layer 3: Rule-based classification (now covers all cases)
         store_info = store_cache.get(appid_str)
-        rule_result = classify_by_rules(game, store_info)
-        if rule_result:
-            category, reason = rule_result
-            results[appid] = {
-                "appid": appid,
-                "name": game.get("name", f"App {appid}"),
-                "category": category,
-                "confidence": "HIGH",
-                "reason": f"Rule: {reason}",
-            }
-            rule_count += 1
-            continue
-
-        # Not classified yet — collect for AI or fallback
-        unclassified.append(game)
+        category, reason = classify_by_rules(game, store_info)
+        results[appid] = {
+            "appid": appid,
+            "name": game.get("name", f"App {appid}"),
+            "category": category,
+            "confidence": "HIGH" if "Likely" not in reason and "default" not in reason.lower() else "MEDIUM",
+            "reason": f"Rule: {reason}",
+        }
+        rule_count += 1
 
     status_msg = (
         f"Classification: {override_count} overrides, "
-        f"{saved_count} saved, {rule_count} rule-based, "
-        f"{len(unclassified)} remaining"
+        f"{saved_count} saved, {rule_count} rule-based"
     )
     if progress_callback:
         progress_callback("classify_status", {"message": status_msg})
     else:
         console.print(f"[dim]{status_msg}[/dim]")
 
-    # Layer 4: AI classification for ambiguous games
-    if unclassified and anthropic_key and HAS_ANTHROPIC:
-        if progress_callback:
-            progress_callback("classify_status", {"message": f"Classifying {len(unclassified)} ambiguous games with AI..."})
-        else:
-            console.print(
-                f"\n[bold]Classifying {len(unclassified)} ambiguous games with AI...[/bold]"
-            )
-        ai_results = classify_with_ai(anthropic_key, unclassified, progress_callback=progress_callback)
-        for g in ai_results:
-            if g.get("appid"):
-                results[g["appid"]] = g
-
-        # Check if any still unclassified after AI
-        ai_classified_ids = {g["appid"] for g in ai_results if g.get("appid")}
-        still_unclassified = [g for g in unclassified if g["appid"] not in ai_classified_ids]
-    elif unclassified and not anthropic_key:
-        msg = (f"{len(unclassified)} games could not be classified by rules. "
-               f"Add an Anthropic API key for AI classification.")
-        if progress_callback:
-            progress_callback("classify_status", {"message": msg})
-        else:
-            console.print(f"[dim]{msg}[/dim]")
-        still_unclassified = unclassified
-    elif unclassified and not HAS_ANTHROPIC:
-        msg = (f"{len(unclassified)} games could not be classified by rules. "
-               f"Install anthropic (pip install anthropic) for AI classification.")
-        if progress_callback:
-            progress_callback("classify_status", {"message": msg})
-        else:
-            console.print(f"[dim]{msg}[/dim]")
-        still_unclassified = unclassified
-    else:
-        still_unclassified = []
-
-    # Layer 5: Fallback — anything still unclassified defaults to IN_PROGRESS
-    for game in still_unclassified:
-        appid = game["appid"]
-        results[appid] = {
-            "appid": appid,
-            "name": game.get("name", f"App {appid}"),
-            "category": "IN_PROGRESS",
-            "confidence": "LOW",
-            "reason": "No rule match, no AI — defaulted to In Progress",
-        }
-
     return list(results.values())
-
-
-# ── AI Classification ────────────────────────────────────────────────────────
-
-CLASSIFICATION_PROMPT = """\
-You are a gaming expert. Classify each Steam game into one of four categories:
-
-1. **COMPLETED** - The user has finished the main storyline or primary content.
-   "Completed" means beating the main story/campaign — NOT 100% achievements.
-   Many players complete a game with 20-50% of achievements.
-
-2. **IN_PROGRESS** - The game HAS a clear ending/completion point, but the user
-   probably hasn't reached it yet. This includes the user's backlog (owned but unplayed
-   completable games).
-
-3. **ENDLESS** - The game has no real "completion" state. Examples: multiplayer-only
-   games, competitive games, sandbox games, simulation games, strategy games like
-   Age of Empires or Civilization, endless roguelikes.
-
-4. **NOT_A_GAME** - Not a real game. Examples: demos, teasers, playable teasers,
-   tech demos, tools, utilities, software (Wallpaper Engine, RPG Maker), VR home
-   apps, soundtracks, video players, benchmarks, dedicated servers, modding tools.
-
-For each game, respond with ONLY a JSON object (no markdown, no explanation):
-{
-  "games": [
-    {
-      "appid": 12345,
-      "name": "Game Name",
-      "category": "COMPLETED" | "IN_PROGRESS" | "ENDLESS",
-      "confidence": "HIGH" | "MEDIUM" | "LOW",
-      "reason": "Brief explanation"
-    }
-  ]
-}
-
-PRIORITY RULES (follow in this order):
-1. If a game has a "user_collection" field, that is the USER'S OWN categorization and
-   takes highest priority. If the collection name suggests completion (e.g. "Completed",
-   "Done", "Finished", "Beat"), classify as COMPLETED regardless of achievement %.
-   Other collection names are informational hints.
-2. Use achievements to HELP determine completion, but do NOT require high achievement %
-   to mark a game as completed. Look for story-related achievement names (e.g.
-   "beat_final_boss", "credits", "the_end", "chapter_5_complete") as completion signals.
-   A player who earned 15% of achievements but has story-completion achievements is COMPLETED.
-3. Use playtime relative to the game's known typical completion time as a signal.
-4. Use genre/game knowledge for games without achievement data.
-
-Other edge cases:
-- A game with 0 minutes played that IS completable → IN_PROGRESS (backlog)
-- A game with 0 minutes played that is NOT completable → ENDLESS
-- Roguelikes with story elements (Hades) → completable
-- Multiplayer-focused games with short campaigns (COD) → use playtime to judge
-- Free-to-play games the user may have tried briefly → still classify normally
-- Demos, teasers, playable teasers → NOT_A_GAME (even if they have achievements)
-- Tools/utilities/software that happen to be on Steam → NOT_A_GAME
-"""
-
-
-def classify_games_batch(
-    client, games_batch: list[dict]
-) -> list[dict]:
-    """Send a batch of games to Claude for classification."""
-    games_text = json.dumps(games_batch, indent=2)
-
-    message = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=4096,
-        messages=[
-            {
-                "role": "user",
-                "content": f"{CLASSIFICATION_PROMPT}\n\nHere are the games to classify:\n{games_text}",
-            }
-        ],
-    )
-
-    response_text = message.content[0].text
-
-    # Extract JSON from response (handle markdown code blocks)
-    if "```json" in response_text:
-        response_text = response_text.split("```json")[1].split("```")[0]
-    elif "```" in response_text:
-        response_text = response_text.split("```")[1].split("```")[0]
-
-    try:
-        result = json.loads(response_text)
-        return result.get("games", result) if isinstance(result, dict) else result
-    except json.JSONDecodeError:
-        console.print("[red]Warning: Could not parse AI response for a batch.[/red]")
-        return []
-
-
-def classify_with_ai(anthropic_key: str, games: list[dict], progress_callback=None) -> list[dict]:
-    """Classify a list of games using the Anthropic API."""
-    client = anthropic.Anthropic(api_key=anthropic_key)
-    BATCH_SIZE = 25
-    all_classified = []
-
-    batches = [games[i : i + BATCH_SIZE] for i in range(0, len(games), BATCH_SIZE)]
-
-    if progress_callback:
-        for i, batch in enumerate(batches):
-            progress_callback("ai_progress", {"batch": i + 1, "total": len(batches)})
-            classified = classify_games_batch(client, batch)
-            all_classified.extend(classified)
-            if i < len(batches) - 1:
-                time.sleep(1)
-    else:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            console=console,
-        ) as progress:
-            task = progress.add_task(
-                f"AI batch 1/{len(batches)}...", total=len(batches)
-            )
-            for i, batch in enumerate(batches):
-                progress.update(
-                    task,
-                    description=f"AI batch {i + 1}/{len(batches)}...",
-                    completed=i,
-                )
-                classified = classify_games_batch(client, batch)
-                all_classified.extend(classified)
-                if i < len(batches) - 1:
-                    time.sleep(1)
-            progress.update(task, completed=len(batches))
-
-    return all_classified
 
 
 # ── Setup & config loading ───────────────────────────────────────────────────
@@ -1050,13 +916,11 @@ def get_config() -> dict:
     Load configuration from saved file, env vars, or prompt user.
     Priority: env vars > saved config > interactive prompt.
     First run triggers full setup automatically.
-    Anthropic API key is optional — if missing, only rule-based classification is used.
     """
     saved = load_saved_config()
 
     # Resolve config values: env var > saved > None
     api_key = os.environ.get("STEAM_API_KEY") or saved.get("steam_api_key")
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY") or saved.get("anthropic_api_key")
     steam_id = saved.get("steam_id")
     steam_id_input = saved.get("steam_id_input")
 
@@ -1067,7 +931,7 @@ def get_config() -> dict:
                 "[bold]Steam Backlog Organizer[/bold]\n"
                 "Categorize your Steam games into:\n"
                 "  Completed | In Progress / Backlog | Endless\n\n"
-                "Uses rule-based classification (free) with optional AI assist.\n"
+                "Uses rule-based classification to organize your library.\n"
                 "Results are written directly to your Steam library as collections.\n\n"
                 "[yellow]First time? Let's get you set up. "
                 "You only need to do this once.[/yellow]",
@@ -1078,26 +942,12 @@ def get_config() -> dict:
         console.print()
         saved = run_setup(force=True)
         api_key = saved.get("steam_api_key")
-        anthropic_key = saved.get("anthropic_api_key")
         steam_id = saved.get("steam_id")
         steam_id_input = saved.get("steam_id_input")
 
     if not api_key:
         console.print("[red]No Steam API key configured. Run with --setup to configure.[/red]")
         sys.exit(1)
-
-    # Anthropic key is optional — just note it
-    if not anthropic_key:
-        if not HAS_ANTHROPIC:
-            console.print(
-                "[dim]AI classification unavailable (anthropic not installed). "
-                "Using rules only.[/dim]"
-            )
-        else:
-            console.print(
-                "[dim]No Anthropic API key configured. Using rule-based classification only. "
-                "Run with --setup to add one for AI-powered classification of ambiguous games.[/dim]"
-            )
 
     # Resolve vanity URL if needed
     if not steam_id and steam_id_input:
@@ -1109,7 +959,6 @@ def get_config() -> dict:
             if resolved:
                 steam_id = resolved
                 console.print(f"[green]Resolved to Steam ID: {steam_id}[/green]")
-                # Save resolved ID so we don't need to resolve again
                 saved["steam_id"] = steam_id
                 save_config(saved)
             else:
@@ -1125,12 +974,11 @@ def get_config() -> dict:
 
     return {
         "steam_api_key": api_key.strip(),
-        "anthropic_api_key": anthropic_key.strip() if anthropic_key else None,
         "steam_id": steam_id.strip(),
     }
 
 
-def get_config_from_values(steam_api_key: str, steam_id_input: str, anthropic_api_key: str = "") -> dict:
+def get_config_from_values(steam_api_key: str, steam_id_input: str) -> dict:
     """Build a config dict from explicit values (for GUI use). Raises ValueError on errors."""
     if not steam_api_key:
         raise ValueError("Steam API key is required.")
@@ -1141,24 +989,27 @@ def get_config_from_values(steam_api_key: str, steam_id_input: str, anthropic_ap
     if steam_id_input.isdigit():
         steam_id = steam_id_input
     else:
-        resolved = resolve_vanity_url(steam_api_key, steam_id_input)
+        try:
+            resolved = resolve_vanity_url(steam_api_key, steam_id_input)
+        except (ConnectionError, ValueError) as e:
+            raise ValueError(str(e))
         if resolved:
             steam_id = resolved
         else:
-            raise ValueError(f"Could not resolve '{steam_id_input}' to a Steam ID.")
+            raise ValueError(
+                f"Could not resolve '{steam_id_input}' to a Steam ID. "
+                "Check the spelling or use your 64-bit Steam ID instead."
+            )
 
     # Save for future use
     saved = load_saved_config()
     saved["steam_api_key"] = steam_api_key
     saved["steam_id_input"] = steam_id_input
     saved["steam_id"] = steam_id
-    if anthropic_api_key:
-        saved["anthropic_api_key"] = anthropic_api_key
     save_config(saved)
 
     return {
         "steam_api_key": steam_api_key.strip(),
-        "anthropic_api_key": anthropic_api_key.strip() if anthropic_api_key else None,
         "steam_id": steam_id.strip(),
     }
 
@@ -1245,9 +1096,12 @@ def save_json_export(config: dict, games_data: list, categories: dict):
         if not documents.exists():
             documents = Path.home()
         output_path = documents / "steam_backlog_organized.json"
-        with open(output_path, "w") as f:
-            json.dump(output, f, indent=2)
-        console.print(f"[green]Saved to {output_path}[/green]")
+        try:
+            with open(output_path, "w") as f:
+                json.dump(output, f, indent=2)
+            console.print(f"[green]Saved to {output_path}[/green]")
+        except OSError as e:
+            console.print(f"[red]Could not save JSON export: {e}[/red]")
 
 
 def write_steam_collections(cloud_data: list, cloud_path: Path, categories: dict):
@@ -1471,7 +1325,7 @@ def main():
             "[bold]Steam Backlog Organizer[/bold]\n"
             "Categorize your Steam games into:\n"
             "  Completed | In Progress / Backlog | Endless\n\n"
-            "[dim]Hybrid: rules (free) + optional AI for ambiguous games[/dim]",
+            "[dim]Rule-based classification using Steam data[/dim]",
             title="Welcome",
             border_style="blue",
         )
@@ -1549,7 +1403,7 @@ def main():
 
     # Classify all games
     all_classified = classify_all_games(
-        games_data, saved, overrides, store_cache, config.get("anthropic_api_key")
+        games_data, saved, overrides, store_cache
     )
 
     # Save classifications

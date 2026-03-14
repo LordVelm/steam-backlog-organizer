@@ -37,15 +37,6 @@ TOOLTIP_API_KEY = (
     "4. Copy the key shown on the page"
 )
 
-TOOLTIP_ANTHROPIC = (
-    "Optional — enables AI classification for ambiguous games.\n\n"
-    "1. Go to https://console.anthropic.com/settings/keys\n"
-    "2. Create a new API key\n"
-    "3. Paste it here\n\n"
-    "Without this, only rule-based classification is used (free)."
-)
-
-
 class Tooltip:
     """Hover tooltip that stays visible so users can select/copy text from it."""
 
@@ -327,10 +318,6 @@ class SteamOrganizerApp(ctk.CTk):
         elif event == "classify_status":
             self._set_status(data["message"])
             self._log(data["message"])
-        elif event == "ai_progress":
-            batch, total = data["batch"], data["total"]
-            self._set_progress(0.8 + batch / total * 0.2)  # 80-100% for AI
-            self._set_status(f"AI classification batch {batch}/{total}")
         elif event == "error":
             messagebox.showerror("Error", data["message"])
 
@@ -345,7 +332,6 @@ class SteamOrganizerApp(ctk.CTk):
                 self.config = organizer.get_config_from_values(
                     fields["steam_api_key"],
                     fields["steam_id"],
-                    fields.get("anthropic_api_key", ""),
                 )
             except ValueError as e:
                 self.after(0, lambda: messagebox.showerror("Configuration Error", str(e)))
@@ -403,7 +389,6 @@ class SteamOrganizerApp(ctk.CTk):
             self.after(0, self._log, "Classifying games...")
             all_classified = organizer.classify_all_games(
                 self.games_data, saved, self.overrides, store_cache,
-                self.config.get("anthropic_api_key"),
                 progress_callback=self._progress_callback,
             )
 
@@ -498,15 +483,9 @@ class SimpleView(ctk.CTkFrame):
                                           placeholder_text="Steam API Key", show="•")
         self.api_key_entry.pack(side="left", padx=5)
 
-        ctk.CTkLabel(settings_frame, text="Anthropic:").pack(side="left", padx=(15, 5))
-        self.anthropic_entry = ctk.CTkEntry(settings_frame, width=160,
-                                            placeholder_text="Optional", show="•")
-        self.anthropic_entry.pack(side="left", padx=5)
-
         # Tooltips
         Tooltip(self.steam_id_entry, TOOLTIP_STEAM_ID)
         Tooltip(self.api_key_entry, TOOLTIP_API_KEY)
-        Tooltip(self.anthropic_entry, TOOLTIP_ANTHROPIC)
 
         # Pre-fill from saved config
         saved = parent._saved
@@ -514,8 +493,6 @@ class SimpleView(ctk.CTkFrame):
             self.steam_id_entry.insert(0, saved.get("steam_id") or saved.get("steam_id_input", ""))
         if saved.get("steam_api_key"):
             self.api_key_entry.insert(0, saved["steam_api_key"])
-        if saved.get("anthropic_api_key"):
-            self.anthropic_entry.insert(0, saved["anthropic_api_key"])
 
         # ── Action buttons + progress ──
         action_frame = ctk.CTkFrame(self, fg_color="transparent")
@@ -586,7 +563,6 @@ class SimpleView(ctk.CTkFrame):
         return {
             "steam_id": self.steam_id_entry.get().strip(),
             "steam_api_key": self.api_key_entry.get().strip(),
-            "anthropic_api_key": self.anthropic_entry.get().strip(),
         }
 
     def set_status(self, message: str):
@@ -657,17 +633,9 @@ class DetailedView(ctk.CTkFrame):
         if saved.get("steam_api_key"):
             self.setup_api_key.insert(0, saved["steam_api_key"])
 
-        ctk.CTkLabel(fields, text="Anthropic API Key:", font=ctk.CTkFont(size=13)).grid(
-            row=2, column=0, padx=(0, 15), pady=10, sticky="e")
-        self.setup_anthropic = ctk.CTkEntry(fields, width=350, placeholder_text="Optional — for AI classification", show="•")
-        self.setup_anthropic.grid(row=2, column=1, pady=10)
-        if saved.get("anthropic_api_key"):
-            self.setup_anthropic.insert(0, saved["anthropic_api_key"])
-
         # Tooltips
         Tooltip(self.setup_steam_id, TOOLTIP_STEAM_ID)
         Tooltip(self.setup_api_key, TOOLTIP_API_KEY)
-        Tooltip(self.setup_anthropic, TOOLTIP_ANTHROPIC)
 
         ctk.CTkButton(inner, text="Save Settings", width=200, height=36,
                        command=self._save_settings).pack(pady=20)
@@ -679,7 +647,6 @@ class DetailedView(ctk.CTkFrame):
         """Save settings from the Setup tab and sync to Simple view."""
         steam_id = self.setup_steam_id.get().strip()
         api_key = self.setup_api_key.get().strip()
-        anthropic = self.setup_anthropic.get().strip()
 
         if not api_key:
             messagebox.showwarning("Missing Field", "Steam API key is required.")
@@ -691,8 +658,6 @@ class DetailedView(ctk.CTkFrame):
         config = {"steam_api_key": api_key, "steam_id_input": steam_id}
         if steam_id.isdigit():
             config["steam_id"] = steam_id
-        if anthropic:
-            config["anthropic_api_key"] = anthropic
 
         organizer.save_config(config)
         self.app._saved = config
@@ -704,9 +669,6 @@ class DetailedView(ctk.CTkFrame):
         sv.steam_id_entry.insert(0, steam_id)
         sv.api_key_entry.delete(0, "end")
         sv.api_key_entry.insert(0, api_key)
-        sv.anthropic_entry.delete(0, "end")
-        if anthropic:
-            sv.anthropic_entry.insert(0, anthropic)
 
     def _build_classify_tab(self):
         tab = self.tabview.add("  Classify  ")
