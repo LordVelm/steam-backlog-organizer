@@ -37,9 +37,16 @@ console = Console()
 
 # ── Paths ────────────────────────────────────────────────────────────────────
 
-CONFIG_DIR = Path(__file__).parent / ".config"
+# When running as a PyInstaller exe, __file__ points to a temp directory.
+# Use the exe's actual location so cache/config persist between runs.
+if getattr(sys, "frozen", False):
+    _BASE_DIR = Path(sys.executable).parent
+else:
+    _BASE_DIR = Path(__file__).parent
+
+CONFIG_DIR = _BASE_DIR / ".config"
 CONFIG_FILE = CONFIG_DIR / "settings.json"
-CACHE_DIR = Path(__file__).parent / ".cache"
+CACHE_DIR = _BASE_DIR / ".cache"
 LIBRARY_CACHE = CACHE_DIR / "library.json"
 CLASSIFICATIONS_FILE = CACHE_DIR / "classifications_final.json"
 STORE_CACHE = CACHE_DIR / "store_details.json"
@@ -1344,18 +1351,31 @@ def fetch_library_data(config: dict, use_cache: bool | None = None, progress_cal
                 console.print(f"[red]{msg}[/red]")
                 sys.exit(1)
 
-        played_games = [g for g in games if g.get("playtime_forever", 0) > 0]
+        # Only fetch achievements for played games that don't already have
+        # saved classifications — no point re-fetching for already-classified games
+        saved_classifications = load_saved_classifications()
+        played_games = [
+            g for g in games
+            if g.get("playtime_forever", 0) > 0 and g["appid"] not in saved_classifications
+        ]
+        all_played = sum(1 for g in games if g.get("playtime_forever", 0) > 0)
+        skipped = all_played - len(played_games)
+
         if progress_callback:
-            progress_callback("library_status", {"message": f"Fetching achievements for {len(played_games)} played games..."})
+            msg = f"Fetching achievements for {len(played_games)} games"
+            if skipped:
+                msg += f" (skipping {skipped} already classified)"
+            progress_callback("library_status", {"message": msg})
         else:
             console.print(
                 f"\n[bold]Found {len(games)} games in your library "
-                f"({len(played_games)} played).[/bold]\n"
+                f"({all_played} played).[/bold]\n"
             )
-            console.print(
-                f"[dim]Fetching achievement data for {len(played_games)} played games "
-                f"(skipping {len(games) - len(played_games)} unplayed)...[/dim]\n"
-            )
+            msg = f"[dim]Fetching achievement data for {len(played_games)} played games"
+            if skipped:
+                msg += f" (skipping {skipped} already classified)"
+            msg += f"...[/dim]\n"
+            console.print(msg)
 
         achievement_cache = {}
         if progress_callback:
@@ -1400,6 +1420,16 @@ def fetch_library_data(config: dict, use_cache: bool | None = None, progress_cal
                 f"[dim]Got achievement data for {len(achievement_cache)} games.[/dim]"
             )
 
+        # Carry forward achievement data from previous cache for skipped games
+        prev_cache = load_library_cache(config["steam_id"])
+        prev_achievements = {}
+        if prev_cache:
+            prev_games, _ = prev_cache
+            prev_achievements = {
+                g["appid"]: g["achievements"]
+                for g in prev_games if "achievements" in g
+            }
+
         games_data = []
         for game in games:
             entry = {
@@ -1411,6 +1441,8 @@ def fetch_library_data(config: dict, use_cache: bool | None = None, progress_cal
             }
             if game["appid"] in achievement_cache:
                 entry["achievements"] = achievement_cache[game["appid"]]
+            elif game["appid"] in prev_achievements:
+                entry["achievements"] = prev_achievements[game["appid"]]
             games_data.append(entry)
 
         save_library_cache(config["steam_id"], games_data)
