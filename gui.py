@@ -227,10 +227,6 @@ class SteamOrganizerApp(ctk.CTk):
         self._apply_icon()
         self.after(300, self._apply_icon)
 
-    def _apply_icon(self):
-        if self._icon_images:
-            self.iconphoto(True, *self._icon_images)
-
         # ── Shared state ──
         self.config = None
         self.games_data = []
@@ -272,6 +268,10 @@ class SteamOrganizerApp(ctk.CTk):
 
         # Load any existing results on startup
         self._load_existing_data()
+
+    def _apply_icon(self):
+        if self._icon_images:
+            self.iconphoto(True, *self._icon_images)
 
     def _toggle_view(self):
         if self.view_var.get() == "detailed":
