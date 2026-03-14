@@ -5,10 +5,12 @@ CustomTkinter interface with Simple and Detailed view modes.
 """
 
 import json
+import re
 import threading
 import tkinter as tk
 from tkinter import messagebox
 from pathlib import Path
+import webbrowser
 
 import customtkinter as ctk
 
@@ -24,12 +26,12 @@ TOOLTIP_STEAM_ID = (
     "- 64-bit ID looks like: 76561198012345678\n"
     "- Custom URL: if your profile is\n"
     "  steamcommunity.com/id/myname, enter 'myname'\n"
-    "- Find yours at: steamid.io"
+    "- Find yours at: https://steamid.io"
 )
 
 TOOLTIP_API_KEY = (
     "Your Steam Web API key.\n\n"
-    "1. Go to steamcommunity.com/dev/apikey\n"
+    "1. Go to https://steamcommunity.com/dev/apikey\n"
     "2. Log in with your Steam account\n"
     "3. Enter any domain name and click Register\n"
     "4. Copy the key shown on the page"
@@ -37,7 +39,7 @@ TOOLTIP_API_KEY = (
 
 TOOLTIP_ANTHROPIC = (
     "Optional — enables AI classification for ambiguous games.\n\n"
-    "1. Go to console.anthropic.com/settings/keys\n"
+    "1. Go to https://console.anthropic.com/settings/keys\n"
     "2. Create a new API key\n"
     "3. Paste it here\n\n"
     "Without this, only rule-based classification is used (free)."
@@ -98,7 +100,35 @@ class Tooltip:
             cursor="arrow", selectbackground="#555555",
             highlightthickness=0,
         )
-        textbox.insert("1.0", self.text)
+
+        # Configure link style
+        textbox.tag_configure("link", foreground="#6ea8fe", underline=True)
+        textbox.tag_bind("link", "<Enter>",
+                         lambda e: textbox.configure(cursor="hand2"))
+        textbox.tag_bind("link", "<Leave>",
+                         lambda e: textbox.configure(cursor="arrow"))
+
+        # Insert text, making URLs clickable
+        url_pattern = re.compile(r'(https?://\S+)')
+        for line_idx, line in enumerate(self.text.split("\n")):
+            if line_idx > 0:
+                textbox.insert("end", "\n")
+            parts = url_pattern.split(line)
+            for part in parts:
+                if url_pattern.match(part):
+                    tag_name = f"link_{id(part)}_{line_idx}"
+                    textbox.tag_configure(tag_name, foreground="#6ea8fe", underline=True)
+                    textbox.tag_bind(tag_name, "<Enter>",
+                                     lambda e: textbox.configure(cursor="hand2"))
+                    textbox.tag_bind(tag_name, "<Leave>",
+                                     lambda e: textbox.configure(cursor="arrow"))
+                    url = part
+                    textbox.tag_bind(tag_name, "<Button-1>",
+                                     lambda e, u=url: webbrowser.open(u))
+                    textbox.insert("end", part, tag_name)
+                else:
+                    textbox.insert("end", part)
+
         textbox.configure(state="normal")  # keep selectable
 
         # Size the text widget to fit content
