@@ -17,6 +17,82 @@ import organizer
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
+# ── Tooltip hints ────────────────────────────────────────────────────────────
+
+TOOLTIP_STEAM_ID = (
+    "Your 64-bit Steam ID or custom profile URL name.\n\n"
+    "- 64-bit ID looks like: 76561198012345678\n"
+    "- Custom URL: if your profile is\n"
+    "  steamcommunity.com/id/myname, enter 'myname'\n"
+    "- Find yours at: steamid.io"
+)
+
+TOOLTIP_API_KEY = (
+    "Your Steam Web API key.\n\n"
+    "1. Go to steamcommunity.com/dev/apikey\n"
+    "2. Log in with your Steam account\n"
+    "3. Enter any domain name and click Register\n"
+    "4. Copy the key shown on the page"
+)
+
+TOOLTIP_ANTHROPIC = (
+    "Optional — enables AI classification for ambiguous games.\n\n"
+    "1. Go to console.anthropic.com/settings/keys\n"
+    "2. Create a new API key\n"
+    "3. Paste it here\n\n"
+    "Without this, only rule-based classification is used (free)."
+)
+
+
+class Tooltip:
+    """Hover tooltip for any widget."""
+
+    def __init__(self, widget, text: str, delay: int = 400):
+        self.widget = widget
+        self.text = text
+        self.delay = delay
+        self._after_id = None
+        self._tooltip_window = None
+        widget.bind("<Enter>", self._schedule)
+        widget.bind("<Leave>", self._cancel)
+        widget.bind("<ButtonPress>", self._cancel)
+
+    def _schedule(self, event=None):
+        self._cancel()
+        self._after_id = self.widget.after(self.delay, self._show)
+
+    def _cancel(self, event=None):
+        if self._after_id:
+            self.widget.after_cancel(self._after_id)
+            self._after_id = None
+        self._hide()
+
+    def _show(self):
+        if self._tooltip_window:
+            return
+        x = self.widget.winfo_rootx() + 20
+        y = self.widget.winfo_rooty() + self.widget.winfo_height() + 5
+
+        self._tooltip_window = tw = tk.Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry(f"+{x}+{y}")
+        tw.attributes("-topmost", True)
+
+        frame = tk.Frame(tw, background="#333333", borderwidth=1, relief="solid")
+        frame.pack()
+        label = tk.Label(
+            frame, text=self.text, justify="left",
+            background="#333333", foreground="#e0e0e0",
+            font=("Segoe UI", 9), padx=8, pady=6,
+        )
+        label.pack()
+
+    def _hide(self):
+        if self._tooltip_window:
+            self._tooltip_window.destroy()
+            self._tooltip_window = None
+
+
 # Category display config
 CATEGORY_CONFIG = {
     "COMPLETED": {"label": "Completed", "color": "#2d8a4e"},
@@ -360,6 +436,11 @@ class SimpleView(ctk.CTkFrame):
                                             placeholder_text="Optional", show="•")
         self.anthropic_entry.pack(side="left", padx=5)
 
+        # Tooltips
+        Tooltip(self.steam_id_entry, TOOLTIP_STEAM_ID)
+        Tooltip(self.api_key_entry, TOOLTIP_API_KEY)
+        Tooltip(self.anthropic_entry, TOOLTIP_ANTHROPIC)
+
         # Pre-fill from saved config
         saved = parent._saved
         if saved.get("steam_id") or saved.get("steam_id_input"):
@@ -507,6 +588,11 @@ class DetailedView(ctk.CTkFrame):
         self.setup_anthropic.grid(row=2, column=1, pady=10)
         if saved.get("anthropic_api_key"):
             self.setup_anthropic.insert(0, saved["anthropic_api_key"])
+
+        # Tooltips
+        Tooltip(self.setup_steam_id, TOOLTIP_STEAM_ID)
+        Tooltip(self.setup_api_key, TOOLTIP_API_KEY)
+        Tooltip(self.setup_anthropic, TOOLTIP_ANTHROPIC)
 
         ctk.CTkButton(inner, text="Save Settings", width=200, height=36,
                        command=self._save_settings).pack(pady=20)
