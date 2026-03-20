@@ -25,38 +25,43 @@ ctk.set_default_color_theme("blue")
 THEMES = {
     "dark": {
         "appearance": "dark",
-        # Frames / surfaces
-        "bg_frame": ("gray20", "gray20"),       # CTkFrame default
+        # Frames / surfaces — Steam's signature dark navy
+        "bg_frame": ("#1b2838", "#1b2838"),     # Steam surface panels
+        "bg_window": "#171a21",                  # Steam main background
         "bg_transparent": "transparent",
-        "bg_input": ("gray14", "gray14"),
-        # Text
-        "text_primary": "#E2E8F0",
-        "text_secondary": "gray",
-        "text_muted": "#6B7280",
-        # Buttons
-        "btn_primary_fg": "#1F6AA5",
-        "btn_primary_hover": "#144870",
-        "btn_write_fg": "#2d8a4e",
-        "btn_write_hover": "#236b3c",
-        "btn_override_fg": "#6b5b3e",
-        "btn_override_hover": "#5a4c33",
-        "btn_neutral_fg": "#4a4a4a",
-        "btn_neutral_hover": "#5a5a5a",
+        "bg_input": ("#2a475e", "#2a475e"),      # Steam input fields
+        # Text — Steam's muted blue-gray palette
+        "text_primary": "#c7d5e0",
+        "text_secondary": "#8f98a0",
+        "text_muted": "#56707f",
+        # Buttons — Steam accent blue + contextual colors
+        "btn_primary_fg": "#66c0f4",
+        "btn_primary_hover": "#4fa3d4",
+        "btn_write_fg": "#5c7e10",
+        "btn_write_hover": "#4a6a08",
+        "btn_override_fg": "#2a475e",
+        "btn_override_hover": "#3a5a72",
+        "btn_neutral_fg": "#2a475e",
+        "btn_neutral_hover": "#3a5a72",
         "btn_danger_fg": "#8b3a3a",
         "btn_danger_hover": "#a04040",
-        "btn_help_fg": "#555555",
-        "btn_help_hover": "#666666",
+        "btn_help_fg": "#2a475e",
+        "btn_help_hover": "#3a5a72",
         # Tooltip
-        "tooltip_bg": "#333333",
-        "tooltip_fg": "#e0e0e0",
+        "tooltip_bg": "#1b2838",
+        "tooltip_fg": "#c7d5e0",
+        # Progress bar
+        "progress_fg": "#66c0f4",
+        "progress_bg": "#2a475e",
         # Status / misc
-        "status_text": "gray",
-        "success_text": "#2d8a4e",
+        "status_text": "#8f98a0",
+        "success_text": "#5c7e10",
     },
     "light": {
         "appearance": "light",
         # Frames / surfaces
         "bg_frame": ("gray86", "gray86"),
+        "bg_window": "#e8e8e8",
         "bg_transparent": "transparent",
         "bg_input": ("gray96", "gray96"),
         # Text
@@ -79,6 +84,9 @@ THEMES = {
         # Tooltip
         "tooltip_bg": "#F3F4F6",
         "tooltip_fg": "#111827",
+        # Progress bar
+        "progress_fg": "#3B82F6",
+        "progress_bg": "#D1D5DB",
         # Status / misc
         "status_text": "#6B7280",
         "success_text": "#16A34A",
@@ -139,14 +147,14 @@ class HelpButton:
         tw.wm_geometry(f"+{x}+{y}")
         tw.attributes("-topmost", True)
 
-        frame = tk.Frame(tw, background="#333333", borderwidth=1, relief="solid")
+        frame = tk.Frame(tw, background=T["tooltip_bg"], borderwidth=1, relief="solid")
         frame.pack(fill="both", expand=True)
 
         textbox = tk.Text(
             frame, wrap="word", relief="flat", borderwidth=0,
-            background="#333333", foreground="#e0e0e0",
+            background=T["tooltip_bg"], foreground=T["tooltip_fg"],
             font=("Segoe UI", 9), padx=8, pady=6,
-            cursor="arrow", selectbackground="#555555",
+            cursor="arrow", selectbackground="#2a475e",
             highlightthickness=0,
         )
 
@@ -159,7 +167,7 @@ class HelpButton:
             for part in parts:
                 if url_pattern.match(part):
                     tag_name = f"link_{id(part)}_{line_idx}"
-                    textbox.tag_configure(tag_name, foreground="#6ea8fe", underline=True)
+                    textbox.tag_configure(tag_name, foreground="#66c0f4", underline=True)
                     textbox.tag_bind(tag_name, "<Enter>",
                                      lambda e: textbox.configure(cursor="hand2"))
                     textbox.tag_bind(tag_name, "<Leave>",
@@ -255,10 +263,10 @@ class Tooltip:
 
 # Category display config
 CATEGORY_CONFIG = {
-    "COMPLETED": {"label": "Completed", "color": "#2d8a4e"},
-    "IN_PROGRESS": {"label": "In Progress", "color": "#3b8ed0"},
-    "ENDLESS": {"label": "Endless", "color": "#8b5cf6"},
-    "NOT_A_GAME": {"label": "Not a Game", "color": "#6b7280"},
+    "COMPLETED": {"label": "Completed", "color": "#4CAF50"},
+    "IN_PROGRESS": {"label": "In Progress", "color": "#FFC107"},
+    "ENDLESS": {"label": "Endless", "color": "#66c0f4"},
+    "NOT_A_GAME": {"label": "Not a Game", "color": "#8f98a0"},
 }
 
 COLLECTION_NAMES = {
@@ -275,6 +283,7 @@ class SteamOrganizerApp(ctk.CTk):
         self.title("Steam Backlog Organizer")
         self.geometry("1000x720")
         self.minsize(800, 600)
+        self.configure(fg_color=T["bg_window"])
 
         # Set window/taskbar icon
         if getattr(sys, "_MEIPASS", None):
@@ -308,17 +317,20 @@ class SteamOrganizerApp(ctk.CTk):
         self._saved = organizer.load_saved_config()
 
         # ── Top bar ──
-        self.top_bar = ctk.CTkFrame(self, height=36, fg_color="transparent")
-        self.top_bar.pack(fill="x", padx=10, pady=(8, 0))
+        self.top_bar = ctk.CTkFrame(self, height=40, fg_color=T["bg_frame"],
+                                     corner_radius=0)
+        self.top_bar.pack(fill="x", padx=0, pady=0)
 
-        ctk.CTkLabel(self.top_bar, text="Steam Backlog Organizer",
-                     font=ctk.CTkFont(size=16, weight="bold")).pack(side="left")
+        self.title_label = ctk.CTkLabel(self.top_bar, text="STEAM BACKLOG ORGANIZER",
+                     font=ctk.CTkFont(size=14, weight="bold"),
+                     text_color=T["text_primary"])
+        self.title_label.pack(side="left", padx=(15, 0))
 
         # Support button
         self.support_btn = ctk.CTkButton(
-            self.top_bar, text="☕ Support", width=90, height=28,
-            fg_color="#FFDD00", hover_color="#E5C700", text_color="#000000",
-            font=ctk.CTkFont(size=12, weight="bold"),
+            self.top_bar, text="☕ Support", width=90, height=26,
+            fg_color="#5c7e10", hover_color="#4a6a08", text_color="#d2efa9",
+            font=ctk.CTkFont(size=11, weight="bold"), corner_radius=2,
             command=lambda: webbrowser.open("https://buymeacoffee.com/lordvelm")
         )
         self.support_btn.pack(side="left", padx=(12, 0))
@@ -326,7 +338,7 @@ class SteamOrganizerApp(ctk.CTk):
         # Theme toggle
         self._current_theme = "dark"
         self.theme_btn = ctk.CTkButton(
-            self.top_bar, text="☀ Light", width=70, height=28, corner_radius=6,
+            self.top_bar, text="☀ Light", width=70, height=26, corner_radius=2,
             font=ctk.CTkFont(size=11), fg_color=T["btn_neutral_fg"],
             hover_color=T["btn_neutral_hover"], text_color=T["text_primary"],
             command=self._toggle_theme)
@@ -335,21 +347,22 @@ class SteamOrganizerApp(ctk.CTk):
         # View toggle
         self.view_var = ctk.StringVar(value="simple")
         toggle_frame = ctk.CTkFrame(self.top_bar, fg_color="transparent")
-        toggle_frame.pack(side="right")
-        ctk.CTkLabel(toggle_frame, text="Detailed", text_color="gray",
+        toggle_frame.pack(side="right", padx=(0, 15))
+        ctk.CTkLabel(toggle_frame, text="Detailed", text_color=T["text_secondary"],
                      font=ctk.CTkFont(size=12)).pack(side="right", padx=(5, 0))
         self.view_switch = ctk.CTkSwitch(toggle_frame, text="", width=40,
                                          command=self._toggle_view,
                                          onvalue="detailed", offvalue="simple",
-                                         variable=self.view_var)
+                                         variable=self.view_var,
+                                         progress_color="#66c0f4")
         self.view_switch.pack(side="right")
-        ctk.CTkLabel(toggle_frame, text="Simple", text_color="gray",
+        ctk.CTkLabel(toggle_frame, text="Simple", text_color=T["text_secondary"],
                      font=ctk.CTkFont(size=12)).pack(side="right", padx=(0, 5))
 
         # ── Views ──
         self.simple_view = SimpleView(self)
         self.detailed_view = DetailedView(self)
-        self.simple_view.pack(fill="both", expand=True, padx=10, pady=10)
+        self.simple_view.pack(fill="both", expand=True, padx=15, pady=(10, 15))
 
         # Load any existing results on startup
         self._load_existing_data()
@@ -364,6 +377,9 @@ class SteamOrganizerApp(ctk.CTk):
         T.clear()
         T.update(THEMES[new])
         ctk.set_appearance_mode(T["appearance"])
+        self.configure(fg_color=T["bg_window"])
+        self.top_bar.configure(fg_color=T["bg_frame"])
+        self.title_label.configure(text_color=T["text_primary"])
         self.theme_btn.configure(
             text="☀ Light" if new == "dark" else "🌙 Dark",
             fg_color=T["btn_neutral_fg"], hover_color=T["btn_neutral_hover"],
@@ -373,30 +389,32 @@ class SteamOrganizerApp(ctk.CTk):
 
     def _apply_theme(self):
         """Re-apply theme colors to all stored widget refs."""
-        # Simple view buttons
+        # Simple view buttons + progress
         sv = self.simple_view
         sv.classify_btn.configure(fg_color=T["btn_primary_fg"], hover_color=T["btn_primary_hover"])
         sv.write_btn.configure(fg_color=T["btn_write_fg"], hover_color=T["btn_write_hover"])
         sv.override_btn.configure(fg_color=T["btn_override_fg"], hover_color=T["btn_override_hover"])
         sv.refresh_btn.configure(fg_color=T["btn_neutral_fg"], hover_color=T["btn_neutral_hover"])
         sv.status_label.configure(text_color=T["status_text"])
+        sv.progress_bar.configure(progress_color=T["progress_fg"], fg_color=T["progress_bg"])
 
-        # Detailed view buttons
+        # Detailed view buttons + progress
         dv = self.detailed_view
         dv.classify_btn.configure(fg_color=T["btn_primary_fg"], hover_color=T["btn_primary_hover"])
         dv.write_btn.configure(fg_color=T["btn_write_fg"], hover_color=T["btn_write_hover"])
         dv.refresh_btn.configure(fg_color=T["btn_neutral_fg"], hover_color=T["btn_neutral_hover"])
         dv.classify_status_label.configure(text_color=T["text_primary"])
+        dv.classify_progress.configure(progress_color=T["progress_fg"], fg_color=T["progress_bg"])
         if hasattr(dv, 'setup_status'):
             dv.setup_status.configure(text_color=T["success_text"])
 
     def _toggle_view(self):
         if self.view_var.get() == "detailed":
             self.simple_view.pack_forget()
-            self.detailed_view.pack(fill="both", expand=True, padx=10, pady=10)
+            self.detailed_view.pack(fill="both", expand=True, padx=15, pady=(10, 15))
         else:
             self.detailed_view.pack_forget()
-            self.simple_view.pack(fill="both", expand=True, padx=10, pady=10)
+            self.simple_view.pack(fill="both", expand=True, padx=15, pady=(10, 15))
         self._refresh_views()
 
     def _load_existing_data(self):
@@ -645,8 +663,8 @@ class SimpleView(ctk.CTkFrame):
         self.app = parent
 
         # ── Settings bar ──
-        settings_frame = ctk.CTkFrame(self)
-        settings_frame.pack(fill="x", pady=(0, 5))
+        settings_frame = ctk.CTkFrame(self, fg_color=T["bg_frame"], corner_radius=4)
+        settings_frame.pack(fill="x", pady=(0, 8))
 
         ctk.CTkLabel(settings_frame, text="Steam ID:").pack(side="left", padx=(10, 5), pady=8)
         self.steam_id_entry = ctk.CTkEntry(settings_frame, width=140,
@@ -672,29 +690,34 @@ class SimpleView(ctk.CTkFrame):
         action_frame.pack(fill="x", pady=5)
 
         self.classify_btn = ctk.CTkButton(
-            action_frame, text="▶  Classify Library", width=160, height=36,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            action_frame, text="▶  Classify Library", width=160, height=34,
+            font=ctk.CTkFont(size=13, weight="bold"), corner_radius=2,
+            fg_color=T["btn_primary_fg"], hover_color=T["btn_primary_hover"],
+            text_color="#171a21",
             command=parent.start_classify,
         )
-        self.classify_btn.pack(side="left", padx=(0, 10))
+        self.classify_btn.pack(side="left", padx=(0, 8))
 
         self.write_btn = ctk.CTkButton(
-            action_frame, text="Write to Steam", width=140, height=36,
+            action_frame, text="Write to Steam", width=140, height=34,
             fg_color=T["btn_write_fg"], hover_color=T["btn_write_hover"],
+            text_color="#d2efa9", corner_radius=2,
             command=parent.start_write_to_steam,
         )
-        self.write_btn.pack(side="left", padx=5)
+        self.write_btn.pack(side="left", padx=4)
 
         self.override_btn = ctk.CTkButton(
-            action_frame, text="Overrides", width=100, height=36,
+            action_frame, text="Overrides", width=100, height=34,
             fg_color=T["btn_override_fg"], hover_color=T["btn_override_hover"],
+            text_color=T["text_primary"], corner_radius=2,
             command=parent.open_override_dialog,
         )
-        self.override_btn.pack(side="left", padx=5)
+        self.override_btn.pack(side="left", padx=4)
 
         self.refresh_btn = ctk.CTkButton(
-            action_frame, text="↻  Refresh", width=100, height=36,
+            action_frame, text="↻  Refresh", width=100, height=34,
             fg_color=T["btn_neutral_fg"], hover_color=T["btn_neutral_hover"],
+            text_color=T["text_primary"], corner_radius=2,
             command=parent.start_refresh,
         )
         self.refresh_btn.pack(side="left", padx=5)
@@ -704,16 +727,19 @@ class SimpleView(ctk.CTkFrame):
         status_frame = ctk.CTkFrame(self, fg_color="transparent")
         status_frame.pack(fill="x", pady=(0, 5))
 
-        self.progress_bar = ctk.CTkProgressBar(status_frame, width=300)
+        self.progress_bar = ctk.CTkProgressBar(status_frame, width=300,
+                                                  progress_color=T["progress_fg"],
+                                                  fg_color=T["progress_bg"])
         self.progress_bar.pack(side="left", padx=(0, 10), pady=5)
         self.progress_bar.set(0)
 
         self.status_label = ctk.CTkLabel(status_frame, text="Ready",
-                                         text_color="gray", font=ctk.CTkFont(size=12))
+                                         text_color=T["status_text"],
+                                         font=ctk.CTkFont(size=12))
         self.status_label.pack(side="left", fill="x", expand=True, anchor="w")
 
         # ── Results: 4 columns ──
-        self.results_frame = ctk.CTkFrame(self)
+        self.results_frame = ctk.CTkFrame(self, fg_color=T["bg_frame"], corner_radius=4)
         self.results_frame.pack(fill="both", expand=True)
         self.results_frame.grid_columnconfigure((0, 1, 2, 3), weight=1)
         self.results_frame.grid_rowconfigure(1, weight=1)
@@ -784,9 +810,10 @@ class DetailedView(ctk.CTkFrame):
         inner.pack(expand=True)
 
         ctk.CTkLabel(inner, text="Configuration",
-                     font=ctk.CTkFont(size=20, weight="bold")).pack(pady=(20, 5))
+                     font=ctk.CTkFont(size=20, weight="bold"),
+                     text_color=T["text_primary"]).pack(pady=(20, 5))
         ctk.CTkLabel(inner, text="Enter your API keys and Steam ID. These are saved locally.",
-                     text_color="gray").pack(pady=(0, 25))
+                     text_color=T["text_secondary"]).pack(pady=(0, 25))
 
         fields = ctk.CTkFrame(inner, fg_color="transparent")
         fields.pack()
@@ -850,7 +877,9 @@ class DetailedView(ctk.CTkFrame):
             font=ctk.CTkFont(size=14))
         self.classify_status_label.pack(pady=(25, 10))
 
-        self.classify_progress = ctk.CTkProgressBar(tab, width=500)
+        self.classify_progress = ctk.CTkProgressBar(tab, width=500,
+                                                       progress_color=T["progress_fg"],
+                                                       fg_color=T["progress_bg"])
         self.classify_progress.pack(pady=10)
         self.classify_progress.set(0)
 
@@ -863,22 +892,26 @@ class DetailedView(ctk.CTkFrame):
         btn_frame.pack(pady=15)
 
         self.classify_btn = ctk.CTkButton(
-            btn_frame, text="▶  Classify Library", width=180, height=40,
-            font=ctk.CTkFont(size=14, weight="bold"),
+            btn_frame, text="▶  Classify Library", width=180, height=38,
+            font=ctk.CTkFont(size=14, weight="bold"), corner_radius=2,
+            fg_color=T["btn_primary_fg"], hover_color=T["btn_primary_hover"],
+            text_color="#171a21",
             command=self.app.start_classify,
         )
         self.classify_btn.pack(side="left", padx=10)
 
         self.write_btn = ctk.CTkButton(
-            btn_frame, text="Write to Steam", width=160, height=40,
+            btn_frame, text="Write to Steam", width=160, height=38,
             fg_color=T["btn_write_fg"], hover_color=T["btn_write_hover"],
+            text_color="#d2efa9", corner_radius=2,
             command=self.app.start_write_to_steam,
         )
         self.write_btn.pack(side="left", padx=10)
 
         self.refresh_btn = ctk.CTkButton(
-            btn_frame, text="↻  Refresh Library", width=160, height=40,
+            btn_frame, text="↻  Refresh Library", width=160, height=38,
             fg_color=T["btn_neutral_fg"], hover_color=T["btn_neutral_hover"],
+            text_color=T["text_primary"], corner_radius=2,
             command=self.app.start_refresh,
         )
         self.refresh_btn.pack(side="left", padx=10)
@@ -908,9 +941,10 @@ class DetailedView(ctk.CTkFrame):
         tab = self.tabview.add("  Overrides  ")
 
         ctk.CTkLabel(tab, text="Manual Overrides",
-                     font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(15, 5))
+                     font=ctk.CTkFont(size=16, weight="bold"),
+                     text_color=T["text_primary"]).pack(pady=(15, 5))
         ctk.CTkLabel(tab, text="Search for a game and set its category manually.",
-                     text_color="gray").pack(pady=(0, 15))
+                     text_color=T["text_secondary"]).pack(pady=(0, 15))
 
         input_frame = ctk.CTkFrame(tab, fg_color="transparent")
         input_frame.pack(fill="x", padx=30)
@@ -1070,6 +1104,7 @@ class OverrideDialog(ctk.CTkToplevel):
         self.app = parent
         self.title("Manual Overrides")
         self.geometry("500x500")
+        self.configure(fg_color=T["bg_window"])
         self.transient(parent)
         self.grab_set()
 

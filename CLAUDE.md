@@ -62,3 +62,10 @@ No test suite exists.
 - **IN_PROGRESS** — Game has a clear ending but user hasn't reached it (includes backlog)
 - **ENDLESS** — No real completion state (multiplayer, sandbox, strategy, roguelikes)
 - **NOT_A_GAME** — Demos, teasers, tools, utilities, soundtracks, dedicated servers
+
+### 2026 Dashboard Design DNA
+- **Theme:** "Steam-meets-Netflix" (Dark Mode).
+- **Colors:** Background #171a21, Surface #1b2838, Primary #66c0f4, Accents (Completed: #4CAF50, In Progress: #FFC107, Endless: #2196F3).
+- **Layout:** 12-column grid. Use Card-based browsing instead of lists.
+- **UI Framework:** CustomTkinter (keep it modern and rounded).
+- **Key Fields:** Map `confidence` to visual badges and `reason` to hover tooltips.
