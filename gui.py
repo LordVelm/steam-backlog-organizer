@@ -133,7 +133,7 @@ class ImageManager:
 
     def __init__(self):
         self._images: dict[int, ctk.CTkImage] = {}
-        self._executor = ThreadPoolExecutor(max_workers=4, thread_name_prefix="img")
+        self._executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="img")
         self._placeholder = None
 
     def get_placeholder(self) -> ctk.CTkImage:
@@ -402,6 +402,13 @@ class SteamOrganizerApp(ctk.CTk):
                      text_color=T["text_primary"])
         self.title_label.pack(side="left", padx=(15, 0))
 
+        self.credit_label = ctk.CTkLabel(self.top_bar, text="by LordVelm",
+                     font=ctk.CTkFont(family=FONT_FAMILY, size=10),
+                     text_color=T["text_muted"], cursor="hand2")
+        self.credit_label.pack(side="left", padx=(6, 0))
+        self.credit_label.bind("<Button-1>",
+            lambda e: webbrowser.open("https://github.com/LordVelm"))
+
         # Support button
         self.support_btn = ctk.CTkButton(
             self.top_bar, text="☕ Support", width=90, height=26,
@@ -467,6 +474,7 @@ class SteamOrganizerApp(ctk.CTk):
         self.configure(fg_color=T["bg_window"])
         self.top_bar.configure(fg_color=T["bg_frame"])
         self.title_label.configure(text_color=T["text_primary"])
+        self.credit_label.configure(text_color=T["text_muted"])
         self.theme_btn.configure(
             text="☀ Light" if new == "dark" else "🌙 Dark",
             fg_color=T["btn_neutral_fg"], hover_color=T["btn_neutral_hover"],
@@ -698,6 +706,9 @@ class SteamOrganizerApp(ctk.CTk):
             # Save
             organizer.save_final_classifications(all_classified)
 
+            # Pre-download cover art in background
+            self.after(0, self._preload_images, all_classified)
+
             # Build categories
             categories = {"COMPLETED": [], "IN_PROGRESS": [], "ENDLESS": [], "NOT_A_GAME": []}
             for game in all_classified:
@@ -732,6 +743,13 @@ class SteamOrganizerApp(ctk.CTk):
     def _classify_done(self):
         self._running = False
         self._set_buttons_enabled(True)
+
+    def _preload_images(self, all_classified):
+        """Kick off background downloads for all game images."""
+        for game in all_classified:
+            appid = game.get("appid")
+            if appid:
+                self.image_manager.load_async(appid, lambda *_: None)
 
     def start_write_to_steam(self):
         if self._running:
@@ -1231,8 +1249,9 @@ class DetailedView(ctk.CTkFrame):
         self.log_box.configure(state="disabled")
 
     def refresh(self, categories: dict, playtime_lookup: dict):
-        # Results tab — rebuild game cards
+        # Results tab — rebuild game cards in batches
         self._game_cards.clear()
+        self._pending_cards = []
 
         for cat_key, cfg in CATEGORY_CONFIG.items():
             games = categories.get(cat_key, [])
@@ -1243,13 +1262,27 @@ class DetailedView(ctk.CTkFrame):
                 w.destroy()
 
             for g in games:
-                appid = g.get("appid")
-                name = g.get("name", "?")
-                hours = playtime_lookup.get(appid, 0)
-                self._create_game_card(scroll, appid, name, hours)
+                self._pending_cards.append((
+                    scroll, g.get("appid"), g.get("name", "?"),
+                    playtime_lookup.get(g.get("appid"), 0),
+                ))
+
+        # Create cards in batches to avoid freezing the UI
+        self._process_card_batch()
 
         # Overrides tab
         self._refresh_overrides_list()
+
+    def _process_card_batch(self, batch_size=20):
+        """Create a batch of game cards, then yield to the event loop."""
+        if not self._pending_cards:
+            return
+        batch = self._pending_cards[:batch_size]
+        self._pending_cards = self._pending_cards[batch_size:]
+        for scroll, appid, name, hours in batch:
+            self._create_game_card(scroll, appid, name, hours)
+        if self._pending_cards:
+            self.after(10, self._process_card_batch)
 
 
 class VibeCheckView(ctk.CTkFrame):

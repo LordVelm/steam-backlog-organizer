@@ -51,6 +51,7 @@ PROGRESS_CACHE = CACHE_DIR / "classification_progress.json"
 # ── Constants ────────────────────────────────────────────────────────────────
 
 STEAM_API_BASE = "https://api.steampowered.com"
+STEAM_CDN_CAPSULE = "https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/capsule_231x87.jpg"
 STEAM_CDN_HEADER = "https://cdn.cloudflare.steamstatic.com/steam/apps/{appid}/header.jpg"
 STEAM_STORE_API = "https://store.steampowered.com/api/appdetails"
 STEAM_BASE = Path("C:/Program Files (x86)/Steam")
@@ -253,19 +254,26 @@ def get_player_achievements(api_key: str, steam_id: str, app_id: int) -> dict | 
 
 
 def download_header_image(appid: int) -> Path | None:
-    """Download a game's header image from Steam CDN. Returns cached path."""
+    """Download a game's cover image from Steam CDN. Returns cached path.
+
+    Tries the small capsule (231x87, ~5KB) first, falls back to header (460x215).
+    """
     cache_path = IMAGE_CACHE_DIR / f"{appid}.jpg"
     if cache_path.exists():
         return cache_path
     try:
         IMAGE_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        resp = requests.get(
-            STEAM_CDN_HEADER.format(appid=appid), timeout=10,
-        )
-        if resp.status_code == 200 and resp.content:
-            cache_path.write_bytes(resp.content)
-            return cache_path
-    except (requests.RequestException, OSError):
+        for url_template in (STEAM_CDN_CAPSULE, STEAM_CDN_HEADER):
+            try:
+                resp = requests.get(
+                    url_template.format(appid=appid), timeout=8,
+                )
+                if resp.status_code == 200 and resp.content:
+                    cache_path.write_bytes(resp.content)
+                    return cache_path
+            except requests.RequestException:
+                continue
+    except OSError:
         pass
     return None
 
