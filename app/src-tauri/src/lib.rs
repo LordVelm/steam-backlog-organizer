@@ -46,10 +46,18 @@ fn check_config() -> ConfigStatus {
 }
 
 #[tauri::command]
-fn save_config(api_key: String, steam_id: String) -> Result<(), String> {
+async fn save_config(state: State<'_, AppState>, api_key: String, steam_id: String) -> Result<(), String> {
+    // Resolve vanity URL if the input isn't a numeric Steam ID
+    let resolved_id = if steam_id.chars().all(|c| c.is_ascii_digit()) && steam_id.len() >= 15 {
+        steam_id
+    } else {
+        // Treat as vanity URL name — need API key to resolve
+        steam_api::resolve_vanity_url(&state.client, &api_key, &steam_id).await?
+    };
+
     let cfg = config::AppConfig {
         steam_api_key: api_key,
-        steam_id,
+        steam_id: resolved_id,
     };
     config::save_config(&cfg)
 }

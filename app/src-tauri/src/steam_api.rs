@@ -80,6 +80,37 @@ struct RawAchievement {
     achieved: u32,
 }
 
+/// Resolve a Steam vanity URL name to a 64-bit Steam ID.
+pub async fn resolve_vanity_url(
+    client: &Client,
+    api_key: &str,
+    vanity_name: &str,
+) -> Result<String, String> {
+    let url = format!(
+        "{STEAM_API_BASE}/ISteamUser/ResolveVanityURL/v0001/\
+         ?key={api_key}&vanityurl={vanity_name}"
+    );
+
+    let resp: serde_json::Value = client
+        .get(&url)
+        .timeout(Duration::from_secs(10))
+        .send()
+        .await
+        .map_err(|e| format!("Failed to resolve vanity URL: {e}"))?
+        .json()
+        .await
+        .map_err(|e| format!("Failed to parse vanity URL response: {e}"))?;
+
+    let success = resp["response"]["success"].as_u64().unwrap_or(0);
+    if success == 1 {
+        if let Some(steam_id) = resp["response"]["steamid"].as_str() {
+            return Ok(steam_id.to_string());
+        }
+    }
+
+    Err(format!("Could not resolve '{}' to a Steam ID. Check the spelling or use your 64-bit Steam ID instead.", vanity_name))
+}
+
 /// Fetch all owned games for a Steam user.
 pub async fn get_owned_games(
     client: &Client,
