@@ -1,14 +1,14 @@
 [package]
-name = "steam-backlog-organizer"
+name = "gamekeeper"
 version = "3.0.0"
 edition = "2021"
 
 [lib]
-name = "steam_backlog_lib"
+name = "gamekeeper_lib"
 crate-type = ["lib", "cdylib", "staticlib"]
 
 [[bin]]
-name = "steam-backlog-organizer"
+name = "gamekeeper"
 path = "src/main.rs"
 
 [dependencies]

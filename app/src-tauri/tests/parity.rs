@@ -9,8 +9,8 @@ use std::fs;
 use std::path::PathBuf;
 
 // Re-use types from the library
-use steam_backlog_lib::classifier::{classify_all_games, Classification};
-use steam_backlog_lib::steam_api::{OwnedGame, StoreDetails};
+use gamekeeper_lib::classifier::{classify_all_games, Classification};
+use gamekeeper_lib::steam_api::{OwnedGame, StoreDetails};
 
 fn fixtures_dir() -> PathBuf {
     // tests/ is inside app/src-tauri/, fixtures/ is at repo root
