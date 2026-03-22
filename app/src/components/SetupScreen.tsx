@@ -93,6 +93,8 @@ export default function SetupScreen({ onComplete, error, hasExistingConfig }: Pr
               className="w-full px-3 py-2 rounded-lg bg-steam-surface border border-steam-border text-white placeholder-steam-text-dim focus:border-steam-blue focus:outline-none"
             />
             <p className="text-xs text-steam-text-dim mt-1">
+              64-bit ID (e.g. 76561198012345678) or custom URL name
+              (e.g. if your profile is steamcommunity.com/id/<span className="text-steam-text">myname</span>, enter <span className="text-steam-text">myname</span>).
               Find yours at{" "}
               <button
                 type="button"
@@ -101,7 +103,6 @@ export default function SetupScreen({ onComplete, error, hasExistingConfig }: Pr
               >
                 steamid.io
               </button>
-              {" "}— copy the steamID64
             </p>
           </div>
 
