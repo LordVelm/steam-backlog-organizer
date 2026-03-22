@@ -78,6 +78,7 @@ The AI is **never** used for core classification — rules stay canonical. GPU a
 
 ## Important Notes
 
+- **First sync takes time** — Steam's API is rate-limited, so fetching achievements and store details for a large library (500+ games) can take 10–15 minutes. This is a one-time process — subsequent launches use cached data and only fetch new games.
 - **Steam must be closed** when writing collections
 - **API keys are stored locally** in `%APPDATA%/Gamekeeper/config/settings.json`
 - **All data stays on your machine** — no cloud services, no telemetry
