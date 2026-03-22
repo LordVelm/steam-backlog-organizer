@@ -381,12 +381,20 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
                 Rule-based classification — no cloud AI required.
                 Optional local AI for recommendations.
               </p>
-              <button
-                onClick={() => open("https://buymeacoffee.com/lordvelm")}
-                className="py-1.5 px-3 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors font-medium"
-              >
-                Support the project
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => open("https://buymeacoffee.com/lordvelm")}
+                  className="py-1.5 px-3 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 transition-colors font-medium"
+                >
+                  Support the project
+                </button>
+                <button
+                  onClick={() => open("https://github.com/LordVelm/steam-backlog-organizer/issues")}
+                  className="py-1.5 px-3 rounded-lg bg-steam-surface-light text-steam-text-dim hover:text-white transition-colors"
+                >
+                  Report a bug
+                </button>
+              </div>
             </div>
           </div>
 

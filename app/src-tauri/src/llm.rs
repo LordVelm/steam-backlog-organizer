@@ -427,7 +427,8 @@ pub async fn run_recommendation_inference(
          \"reason\": \"Specific reason tied to the user's request\"}}]}}\n\n\
          - \"picks\" can be [] for conversational replies\n\
          - Include 1-3 picks when recommending\n\
-         - Double-check that every appid and title matches the candidate list exactly"
+         - Double-check that every appid and title matches the candidate list exactly\n\
+         - NEVER mention appids, playtime_hours numbers, or other technical data in the \"message\" field — speak naturally as a human would"
     );
 
     run_inference_chat(&system_prompt, user_message, history).await
