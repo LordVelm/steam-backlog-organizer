@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui/tauri-v2-schema/refs/heads/main/tauri.conf.json",
   "productName": "Gamekeeper",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "identifier": "com.lordvelm.gamekeeper",
   "build": {
     "frontendDist": "../dist",
