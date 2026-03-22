@@ -93,16 +93,7 @@ export default function SetupScreen({ onComplete, error, hasExistingConfig }: Pr
               className="w-full px-3 py-2 rounded-lg bg-steam-surface border border-steam-border text-white placeholder-steam-text-dim focus:border-steam-blue focus:outline-none"
             />
             <p className="text-xs text-steam-text-dim mt-1">
-              64-bit ID (e.g. 76561198012345678) or custom URL name
-              (e.g. if your profile is steamcommunity.com/id/<span className="text-steam-text">myname</span>, enter <span className="text-steam-text">myname</span>).
-              Find yours at{" "}
-              <button
-                type="button"
-                onClick={() => open("https://steamid.io")}
-                className="text-steam-blue hover:underline"
-              >
-                steamid.io
-              </button>
+              To find your Steam ID: open Steam, click your name at the top right, select "Account Details" — your 64-bit ID (e.g. 76561198012345678) is shown on that page. You can also use your custom URL name (e.g. if your profile is steamcommunity.com/id/<span className="text-steam-text">myname</span>, enter <span className="text-steam-text">myname</span>).
             </p>
           </div>
 
