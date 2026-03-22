@@ -153,13 +153,24 @@ pub fn classify_by_rules(game: &OwnedGame, store_info: Option<&StoreDetails>) ->
         }
     }
 
-    // Rule 8: Moderate achievement % with playtime suggests completion
+    // Rule 8: Achievement % with significant playtime suggests completion
+    // Tiered: lower achievement % accepted with more playtime (open-world games
+    // have tons of side content that dilutes % even after beating the main story)
     if let Some(ref ach) = game.achievements {
         if ach.percentage >= 40.0 && playtime >= 5.0 {
             return (
                 Category::Completed,
                 format!(
-                    "Likely completed ({}% achievements, {}h played)",
+                    "Likely completed ({}% achievements, {:.1}h played)",
+                    ach.percentage, playtime
+                ),
+            );
+        }
+        if ach.percentage >= 20.0 && playtime >= 20.0 && has_sp {
+            return (
+                Category::Completed,
+                format!(
+                    "Likely completed ({}% achievements, {:.1}h played, single-player)",
                     ach.percentage, playtime
                 ),
             );
@@ -170,8 +181,21 @@ pub fn classify_by_rules(game: &OwnedGame, store_info: Option<&StoreDetails>) ->
     if has_sp && playtime >= 15.0 && game.achievements.is_none() {
         return (
             Category::Completed,
-            format!("Likely completed (single-player, {playtime}h played)"),
+            format!("Likely completed (single-player, {playtime:.1}h played)"),
         );
+    }
+
+    // Rule 9b: Very high playtime with no achievements → likely completed
+    // Catches games where achievements aren't tracked on Steam (e.g. Ubisoft Connect)
+    if has_sp && playtime >= 20.0 {
+        if let Some(ref ach) = game.achievements {
+            if ach.achieved == 0 && ach.total > 0 {
+                return (
+                    Category::Completed,
+                    format!("Likely completed (single-player, {:.1}h played, achievements tracked externally)", playtime),
+                );
+            }
+        }
     }
 
     // Rule 10: Sandbox/strategy/simulation genres (even with SP) → ENDLESS if no achievements
