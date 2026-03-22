@@ -73,12 +73,27 @@ pub fn get_server_path(data_dir: &Path) -> PathBuf {
 
 /// Detect whether an NVIDIA GPU is available by running nvidia-smi
 pub fn has_nvidia_gpu() -> bool {
-    Command::new("nvidia-smi")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false)
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        Command::new("nvidia-smi")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .creation_flags(CREATE_NO_WINDOW)
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false)
+    }
+    #[cfg(not(windows))]
+    {
+        Command::new("nvidia-smi")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false)
+    }
 }
 
 /// Check if we downloaded the CUDA build (marker file)
@@ -331,8 +346,8 @@ pub fn start_server(data_dir: &Path, state: &LlmState) -> Result<(), String> {
     let gpu_layers = if has_cuda_build(data_dir) && !*force_cpu { "99" } else { "0" };
     drop(force_cpu);
 
-    let child = Command::new(&server_path)
-        .current_dir(&bin_dir)
+    let mut cmd = Command::new(&server_path);
+    cmd.current_dir(&bin_dir)
         .arg("-m")
         .arg(&model_path)
         .arg("--port")
@@ -345,8 +360,16 @@ pub fn start_server(data_dir: &Path, state: &LlmState) -> Result<(), String> {
         .arg("8192")
         .arg("--cont-batching")
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
+        .stderr(Stdio::null());
+
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
+
+    let child = cmd.spawn()
         .map_err(|e| format!("Failed to start llama-server: {}", e))?;
 
     *process_guard = Some(child);
