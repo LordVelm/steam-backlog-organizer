@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   getRecommendations,
   checkAiSetup,
@@ -24,10 +24,16 @@ export default function ChatPanel({ onClose }: Props) {
   const [history, setHistory] = useState<ChatEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [aiReady, setAiReady] = useState<boolean | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkAiSetup().then((s) => setAiReady(s.modelReady && s.serverReady)).catch(() => setAiReady(false));
   }, []);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [history, loading]);
 
   async function handleSend() {
     const message = input.trim();
@@ -38,13 +44,20 @@ export default function ChatPanel({ onClose }: Props) {
     setHistory(newHistory);
     setLoading(true);
 
-    // Build chat history for the backend (flatten picks into text)
+    // Build clean chat history for the backend
+    // Use pick data (not raw content) to avoid sending leaked JSON back to the model
     const chatHistory: ChatMessage[] = newHistory.slice(0, -1).map((entry) => {
-      if (entry.role === "assistant" && entry.picks && entry.picks.length > 0) {
-        const picksText = entry.picks
-          .map((p) => `- ${p.title}: ${p.reason}`)
-          .join("\n");
-        return { role: "assistant", content: `${entry.content}\n${picksText}` };
+      if (entry.role === "assistant") {
+        // Reconstruct a clean assistant message from structured data
+        const parts: string[] = [];
+        if (entry.content) parts.push(entry.content);
+        if (entry.picks && entry.picks.length > 0) {
+          const picksText = entry.picks
+            .map((p) => `Recommended: ${p.title} — ${p.reason}`)
+            .join(". ");
+          parts.push(picksText);
+        }
+        return { role: "assistant", content: parts.join("\n") };
       }
       return { role: entry.role, content: entry.content };
     });
@@ -75,6 +88,21 @@ export default function ChatPanel({ onClose }: Props) {
 
     setLoading(false);
   }
+
+  const pendingChipRef = useRef<string | null>(null);
+
+  function sendChip(text: string) {
+    pendingChipRef.current = text;
+    setInput(text);
+  }
+
+  // When input changes from a chip click, auto-send
+  useEffect(() => {
+    if (pendingChipRef.current && input === pendingChipRef.current) {
+      pendingChipRef.current = null;
+      handleSend();
+    }
+  }, [input]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -111,24 +139,9 @@ export default function ChatPanel({ onClose }: Props) {
             <div className="text-center text-steam-text-dim text-sm py-8">
               <p className="mb-3">Ask me what to play!</p>
               <div className="space-y-2 text-xs">
-                <SuggestionChip
-                  text="Something short I can finish tonight"
-                  onClick={(t) => {
-                    setInput(t);
-                  }}
-                />
-                <SuggestionChip
-                  text="Pick from my backlog"
-                  onClick={(t) => {
-                    setInput(t);
-                  }}
-                />
-                <SuggestionChip
-                  text="Something cozy I haven't started"
-                  onClick={(t) => {
-                    setInput(t);
-                  }}
-                />
+                <SuggestionChip text="Something short I can finish tonight" onClick={sendChip} />
+                <SuggestionChip text="Pick from my backlog" onClick={sendChip} />
+                <SuggestionChip text="Something cozy I haven't started" onClick={sendChip} />
               </div>
             </div>
           )}
@@ -158,7 +171,7 @@ export default function ChatPanel({ onClose }: Props) {
                       ))}
                     </div>
                   )}
-                  {entry.picks && entry.picks.length === 0 && (
+                  {entry.picks && entry.picks.length === 0 && !entry.usedLlm && (
                     <div className="text-sm text-steam-text-dim">
                       No matching games found in your library.
                     </div>
@@ -174,6 +187,7 @@ export default function ChatPanel({ onClose }: Props) {
               Thinking...
             </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}

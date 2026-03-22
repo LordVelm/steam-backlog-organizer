@@ -145,8 +145,8 @@ fn classify_games(state: State<'_, AppState>) -> Result<Vec<Classification>, Str
     let store_cache = state.store_cache.lock().map_err(|e| e.to_string())?;
     let overrides = state.overrides.lock().map_err(|e| e.to_string())?;
 
-    // For fresh classification, pass empty saved map
-    let saved: HashMap<u64, Classification> = HashMap::new();
+    // Load previously saved classifications to preserve stable results for unchanged games
+    let saved = cache::load_saved_classifications();
 
     let results = classifier::classify_all_games(&games, &saved, &overrides, &store_cache);
 
@@ -325,6 +325,255 @@ struct RecommendResponse {
     message: String,
 }
 
+/// Strip any JSON that the LLM leaked into its message text.
+/// The model sometimes prepends or appends raw JSON syntax around conversational text.
+fn clean_llm_message(message: &str) -> String {
+    // Patterns that indicate leaked JSON
+    let json_patterns = [
+        " - {\"", " - [{", " - \"picks\"", " - \"message\"", " - []",
+        "[{\"", "{\"message\"", "{\"picks\"",
+        "\"picks\":", "\"message\":",
+    ];
+
+    let mut result = message.to_string();
+
+    // Step 1: Strip JSON from the beginning (e.g. '{"picks": []} actual message here')
+    // Try to find where a JSON object/array at the start ends
+    if result.starts_with('{') || result.starts_with('[') {
+        // Find the end of the leading JSON structure
+        let mut depth = 0;
+        let mut in_string = false;
+        let mut escape_next = false;
+        let mut end_idx = 0;
+        for (i, ch) in result.char_indices() {
+            if escape_next {
+                escape_next = false;
+                continue;
+            }
+            if ch == '\\' && in_string {
+                escape_next = true;
+                continue;
+            }
+            if ch == '"' {
+                in_string = !in_string;
+                continue;
+            }
+            if in_string {
+                continue;
+            }
+            if ch == '{' || ch == '[' {
+                depth += 1;
+            } else if ch == '}' || ch == ']' {
+                depth -= 1;
+                if depth == 0 {
+                    end_idx = i + 1;
+                    break;
+                }
+            }
+        }
+        if end_idx > 0 && end_idx < result.len() {
+            // There's text after the JSON — use that as the message
+            result = result[end_idx..].trim().to_string();
+        } else if end_idx > 0 {
+            // The entire message is JSON — try to extract "message" field from it
+            if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&result[..end_idx]) {
+                if let Some(msg) = parsed.get("message").and_then(|m| m.as_str()) {
+                    result = msg.to_string();
+                }
+            }
+        }
+    }
+
+    // Step 2: Strip JSON from the end
+    let mut earliest_cut = result.len();
+    for pattern in &json_patterns {
+        if let Some(idx) = result.find(pattern) {
+            earliest_cut = earliest_cut.min(idx);
+        }
+    }
+    let cleaned = result[..earliest_cut]
+        .trim_end_matches(|c: char| c == '-' || c == ' ' || c == '\n' || c == ',');
+
+    let final_msg = if cleaned.is_empty() {
+        result.trim().to_string()
+    } else {
+        cleaned.to_string()
+    };
+
+    // Strip markdown formatting (bold **text** → text, *text* → text)
+    let mut out = final_msg;
+    while out.contains("**") {
+        out = out.replacen("**", "", 2);
+    }
+    while out.contains("__") {
+        out = out.replacen("__", "", 2);
+    }
+    out
+}
+
+/// Validate picks against the real game library — fix appids/titles, drop unverifiable picks.
+fn validate_picks(
+    raw_picks: Vec<llm::GameRecommendation>,
+    classifications: &[Classification],
+) -> Vec<llm::GameRecommendation> {
+    raw_picks
+        .into_iter()
+        .filter_map(|mut pick| {
+            if let Some(real_game) = classifications.iter().find(|c| c.appid == pick.appid) {
+                pick.title = real_game.name.clone();
+                return Some(pick);
+            }
+            let pick_title_lower = pick.title.to_lowercase();
+            if let Some(real_game) = classifications.iter().find(|c| {
+                c.name.to_lowercase() == pick_title_lower
+            }) {
+                pick.appid = real_game.appid;
+                pick.title = real_game.name.clone();
+                return Some(pick);
+            }
+            if pick_title_lower.len() >= 8 {
+                if let Some(real_game) = classifications.iter().find(|c| {
+                    let name_lower = c.name.to_lowercase();
+                    name_lower.starts_with(&pick_title_lower)
+                        || pick_title_lower.starts_with(&name_lower)
+                }) {
+                    pick.appid = real_game.appid;
+                    pick.title = real_game.name.clone();
+                    return Some(pick);
+                }
+            }
+            None
+        })
+        .collect()
+}
+
+/// Robustly parse an LLM response that may be clean JSON, malformed JSON, or
+/// a mix of conversational text and JSON. Returns (message, picks).
+fn parse_llm_response(response: &str) -> (String, Vec<llm::GameRecommendation>) {
+    // Strategy 1: Try clean JSON parse
+    if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(response) {
+        let raw_message = parsed
+            .get("message")
+            .and_then(|m| m.as_str())
+            .unwrap_or("")
+            .to_string();
+        let picks = parsed
+            .get("picks")
+            .and_then(|p| p.as_array())
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|p| serde_json::from_value::<llm::GameRecommendation>(p.clone()).ok())
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+
+        // If we got a clean parse with picks, great
+        if !picks.is_empty() {
+            return (clean_llm_message(&raw_message), picks);
+        }
+
+        // Clean parse but no picks — try salvaging from message text
+        let message = clean_llm_message(&raw_message);
+        if let Some(salvaged) = extract_picks_from_message(&raw_message) {
+            return (message, salvaged);
+        }
+        return (message, Vec::new());
+    }
+
+    // Strategy 2: JSON parse failed — try to find a JSON object anywhere in the text
+    // The model sometimes outputs: "conversational text {"message": "...", "picks": [...]}"
+    if let Some(obj_start) = response.find("{\"") {
+        let json_candidate = &response[obj_start..];
+        // Try to fix common JSON errors (trailing commas, double braces)
+        let fixed = fix_json(json_candidate);
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&fixed) {
+            let inner_message = parsed
+                .get("message")
+                .and_then(|m| m.as_str())
+                .unwrap_or("")
+                .to_string();
+            let picks = parsed
+                .get("picks")
+                .and_then(|p| p.as_array())
+                .map(|arr| {
+                    arr.iter()
+                        .filter_map(|p| serde_json::from_value::<llm::GameRecommendation>(p.clone()).ok())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+
+            // Use the text before the JSON as the message if inner message is empty
+            let pre_json = clean_llm_message(&response[..obj_start]);
+            let message = if !inner_message.is_empty() {
+                clean_llm_message(&inner_message)
+            } else if !pre_json.is_empty() {
+                pre_json
+            } else {
+                String::new()
+            };
+            return (message, picks);
+        }
+    }
+
+    // Strategy 3: Try to extract picks from any JSON array in the text
+    let message = clean_llm_message(response);
+    let picks = extract_picks_from_message(response).unwrap_or_default();
+    (message, picks)
+}
+
+/// Attempt to fix common JSON errors from the LLM (e.g. double braces, trailing commas).
+fn fix_json(input: &str) -> String {
+    let mut s = input.to_string();
+    // Fix double closing braces: }}} → }}
+    while s.contains("}}}") {
+        s = s.replace("}}}", "}}");
+    }
+    // Fix trailing commas before closing brackets/braces
+    loop {
+        let new = s.replace(",]", "]").replace(",}", "}");
+        if new == s {
+            break;
+        }
+        s = new;
+    }
+    s
+}
+
+/// Try to extract game picks from JSON embedded in the LLM's message text.
+/// Handles multiple formats the model might produce:
+/// 1. Raw array: [{"appid": 123, ...}]
+/// 2. Nested object: {"message": "...", "picks": [...]}
+fn extract_picks_from_message(message: &str) -> Option<Vec<llm::GameRecommendation>> {
+    // Try to find a nested JSON object with a "picks" field
+    if let Some(obj_start) = message.find("{\"message\"").or_else(|| message.find("{\"picks\"")) {
+        let json_candidate = &message[obj_start..];
+        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_candidate) {
+            if let Some(picks_arr) = parsed.get("picks").and_then(|p| p.as_array()) {
+                let picks: Vec<llm::GameRecommendation> = picks_arr
+                    .iter()
+                    .filter_map(|p| serde_json::from_value(p.clone()).ok())
+                    .collect();
+                if !picks.is_empty() {
+                    return Some(picks);
+                }
+            }
+        }
+    }
+
+    // Try to find a raw JSON array of picks
+    let start = message.find("[{")?;
+    let end = message.rfind("}]").map(|i| i + 2)?;
+    if end <= start {
+        return None;
+    }
+    let json_str = &message[start..end];
+    let picks: Vec<llm::GameRecommendation> = serde_json::from_str(json_str).ok()?;
+    if picks.is_empty() {
+        return None;
+    }
+    Some(picks)
+}
+
 #[tauri::command]
 async fn get_recommendations(
     state: State<'_, AppState>,
@@ -388,9 +637,11 @@ async fn get_recommendations(
         let candidates_json =
             serde_json::to_string_pretty(&candidate_summaries).unwrap_or_default();
 
-        // Convert history to LLM chat messages
+        // Convert history to LLM chat messages (limit to last 6 messages
+        // to keep context manageable for the local model)
+        let history_start = request.history.len().saturating_sub(6);
         let chat_history: Vec<(String, String)> = request
-            .history
+            .history[history_start..]
             .iter()
             .map(|m| (m.role.clone(), m.content.clone()))
             .collect();
@@ -401,73 +652,14 @@ async fn get_recommendations(
             &chat_history,
         ).await?;
 
-        if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(&response_text) {
-            let message = parsed
-                .get("message")
-                .and_then(|m| m.as_str())
-                .unwrap_or("")
-                .to_string();
+        // Parse the LLM response — handles clean JSON and various malformed outputs
+        let (message, raw_picks) = parse_llm_response(&response_text);
+        let validated_picks = validate_picks(raw_picks, &classifications);
 
-            // Parse and validate picks against our actual game data
-            let raw_picks = parsed
-                .get("picks")
-                .and_then(|p| p.as_array())
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(|p| serde_json::from_value::<llm::GameRecommendation>(p.clone()).ok())
-                        .collect::<Vec<llm::GameRecommendation>>()
-                })
-                .unwrap_or_default();
-
-            // Validate: ensure each pick's appid exists in our candidates
-            // and use our canonical title (not the LLM's potentially wrong one)
-            let validated_picks: Vec<llm::GameRecommendation> = raw_picks
-                .into_iter()
-                .filter_map(|mut pick| {
-                    // Try to match by appid first (most reliable)
-                    if let Some(real_game) = classifications.iter().find(|c| c.appid == pick.appid) {
-                        pick.title = real_game.name.clone();
-                        return Some(pick);
-                    }
-                    // If appid doesn't match, try exact title match (case-insensitive)
-                    let pick_title_lower = pick.title.to_lowercase();
-                    if let Some(real_game) = classifications.iter().find(|c| {
-                        c.name.to_lowercase() == pick_title_lower
-                    }) {
-                        pick.appid = real_game.appid;
-                        pick.title = real_game.name.clone();
-                        return Some(pick);
-                    }
-                    // Try prefix matching for title variations (e.g. without subtitles)
-                    // Only if title is long enough to avoid false positives
-                    if pick_title_lower.len() >= 8 {
-                        if let Some(real_game) = classifications.iter().find(|c| {
-                            let name_lower = c.name.to_lowercase();
-                            name_lower.starts_with(&pick_title_lower)
-                                || pick_title_lower.starts_with(&name_lower)
-                        }) {
-                            pick.appid = real_game.appid;
-                            pick.title = real_game.name.clone();
-                            return Some(pick);
-                        }
-                    }
-                    // Can't verify this pick — drop it
-                    None
-                })
-                .collect();
-
-            return Ok(RecommendResponse {
-                picks: validated_picks,
-                used_llm: true,
-                message,
-            });
-        }
-
-        // JSON parse failed — salvage the raw text as a message
         return Ok(RecommendResponse {
-            picks: Vec::new(),
+            picks: validated_picks,
             used_llm: true,
-            message: response_text.chars().take(500).collect(),
+            message,
         });
     }
 

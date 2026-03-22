@@ -268,7 +268,7 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
                 <>
                   {/* AI not set up */}
                   <div className="text-xs text-steam-text-dim mb-2">
-                    Download a small AI model (~2 GB) to enable game
+                    Download the AI model (~3.5 GB) to enable game
                     recommendations and classification assistance. One-time
                     download — everything runs locally.
                   </div>
@@ -336,9 +336,37 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-steam-blue shrink-0 mt-0.5">&#8226;</span>
-                <span><strong className="text-steam-text">AI assistant</strong> — download the model below to enable game recommendations and classification second opinions</span>
+                <span><strong className="text-steam-text">AI assistant</strong> — download the model above to enable game recommendations and classification second opinions</span>
               </li>
             </ul>
+          </div>
+
+          {/* System Requirements */}
+          <div className="pt-3 border-t border-steam-border">
+            <h3 className="text-sm font-medium text-steam-text mb-3 uppercase tracking-wide">
+              System Requirements
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs font-medium text-steam-text mb-1">Minimum (without AI)</div>
+                <ul className="text-xs text-steam-text-dim space-y-0.5">
+                  <li>OS: Windows 10 64-bit</li>
+                  <li>RAM: 4 GB</li>
+                  <li>Storage: 100 MB</li>
+                  <li>Network: Internet for Steam API sync</li>
+                </ul>
+              </div>
+              <div>
+                <div className="text-xs font-medium text-steam-text mb-1">Recommended (with AI assistant)</div>
+                <ul className="text-xs text-steam-text-dim space-y-0.5">
+                  <li>OS: Windows 10/11 64-bit</li>
+                  <li>RAM: 8 GB (16 GB for best performance)</li>
+                  <li>Storage: 5 GB free (AI model is ~3.5 GB)</li>
+                  <li>GPU: NVIDIA GPU with 4+ GB VRAM (optional, uses CUDA)</li>
+                  <li>CPU fallback: Works without GPU, responses are slower</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
           {/* About */}

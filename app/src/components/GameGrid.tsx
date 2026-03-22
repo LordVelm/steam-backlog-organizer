@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Classification,
   CategoryKey,
@@ -26,16 +26,16 @@ export default function GameGrid({ games, onOverrideChange }: Props) {
     if (!dismissed) setShowTips(true);
   }, []);
 
-  const filtered = search.trim()
-    ? games.filter((g) =>
-        g.name.toLowerCase().includes(search.toLowerCase())
-      )
-    : games;
-
-  // Sort alphabetically
-  const sorted = [...filtered].sort((a, b) =>
-    a.name.toLowerCase().localeCompare(b.name.toLowerCase())
-  );
+  const sorted = useMemo(() => {
+    const filtered = search.trim()
+      ? games.filter((g) =>
+          g.name.toLowerCase().includes(search.toLowerCase())
+        )
+      : games;
+    return [...filtered].sort((a, b) =>
+      a.name.toLowerCase().localeCompare(b.name.toLowerCase())
+    );
+  }, [games, search]);
 
   return (
     <div className="flex flex-col h-full">

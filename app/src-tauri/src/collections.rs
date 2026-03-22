@@ -101,7 +101,6 @@ pub fn load_steam_collections(userdata_path: &Path) -> Result<(Vec<Value>, PathB
 struct ExistingCollection {
     key: String,
     id: String,
-    added: Vec<Value>,
 }
 
 /// Extract user collections from cloud storage data.
@@ -153,18 +152,11 @@ fn get_existing_collections(cloud_data: &[Value]) -> HashMap<String, ExistingCol
             .and_then(|i| i.as_str())
             .unwrap_or("")
             .to_string();
-        let added = value
-            .get("added")
-            .and_then(|a| a.as_array())
-            .cloned()
-            .unwrap_or_default();
-
         collections.insert(
             name,
             ExistingCollection {
                 key: key.to_string(),
                 id,
-                added,
             },
         );
     }

@@ -7,8 +7,8 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager};
 
-const MODEL_URL: &str = "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf";
-const MODEL_FILENAME: &str = "qwen2.5-3b-instruct-q4_k_m.gguf";
+const MODEL_URL: &str = "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct-GGUF/resolve/main/qwen2.5-7b-instruct-q3_k_m.gguf";
+const MODEL_FILENAME: &str = "qwen2.5-7b-instruct-q3_k_m.gguf";
 pub const LLAMA_SERVER_PORT: u16 = 39282; // Different port from debt planner (39281)
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
