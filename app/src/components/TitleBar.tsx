@@ -18,7 +18,7 @@ export default function TitleBar() {
       {/* App title */}
       <div className="flex items-center gap-2 pl-3 text-xs text-steam-text-dim tracking-wide pointer-events-none">
         <span className="font-semibold text-steam-text">
-          Steam Backlog Organizer
+          Gamekeeper
         </span>
       </div>
 

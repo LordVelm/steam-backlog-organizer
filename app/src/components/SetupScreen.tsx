@@ -40,7 +40,7 @@ export default function SetupScreen({ onComplete, error, hasExistingConfig }: Pr
       <div className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
-            Steam Backlog Organizer
+            Gamekeeper
           </h1>
           <p className="text-steam-text-dim">
             Automatically organize your Steam library into collections.

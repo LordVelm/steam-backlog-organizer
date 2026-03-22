@@ -375,7 +375,8 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
               About
             </h3>
             <div className="text-xs text-steam-text-dim space-y-2">
-              <p>Steam Backlog Organizer v3.0</p>
+              <p>Gamekeeper v3.0</p>
+              <p>Created by LordVelm</p>
               <p>
                 Rule-based classification — no cloud AI required.
                 Optional local AI for recommendations.

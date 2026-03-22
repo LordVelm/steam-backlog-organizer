@@ -58,7 +58,7 @@ export default function GameGrid({ games, onOverrideChange }: Props) {
         <div className="mx-4 mt-3 p-4 rounded-lg bg-steam-blue/10 border border-steam-blue/25 animate-fadeIn">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className="text-sm font-semibold text-white mb-2">Welcome to Steam Backlog Organizer</h3>
+              <h3 className="text-sm font-semibold text-white mb-2">Welcome to Gamekeeper</h3>
               <ul className="text-xs text-steam-text-dim space-y-1.5">
                 <li className="flex items-start gap-2">
                   <span className="text-steam-blue shrink-0 mt-0.5">&#8226;</span>

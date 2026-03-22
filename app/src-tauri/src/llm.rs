@@ -106,7 +106,7 @@ async fn download_to_file(
     let tmp_path = dest.with_extension("tmp");
 
     let client = reqwest::Client::builder()
-        .user_agent("steam-backlog-organizer/3.0")
+        .user_agent("gamekeeper/3.0")
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -192,7 +192,7 @@ pub async fn download_server(data_dir: &Path, app: &AppHandle) -> Result<(), Str
     let use_cuda = gpu_available && cfg!(target_os = "windows");
 
     let client = reqwest::Client::builder()
-        .user_agent("steam-backlog-organizer/3.0")
+        .user_agent("gamekeeper/3.0")
         .build()
         .map_err(|e| e.to_string())?;
 
