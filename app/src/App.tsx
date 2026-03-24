@@ -5,10 +5,13 @@ import {
   fetchStoreDetails,
   classifyGames,
   getClassifications,
+  fetchHltbData,
+  getHltbData,
   onSyncProgress,
   cancelSync,
   Classification,
   CategoryKey,
+  HltbData,
   ConfigStatus,
   SyncProgress as SyncProgressEvent,
 } from "./lib/commands";
@@ -43,6 +46,8 @@ export default function App() {
   const [configStatus, setConfigStatus] = useState<ConfigStatus | null>(null);
   const [classifications, setClassifications] = useState<Classification[]>([]);
   const [activeCategory, setActiveCategory] = useState<CategoryKey | "ALL">("ALL");
+  const [hltbData, setHltbData] = useState<Record<string, HltbData>>({});
+  const [hltbLoading, setHltbLoading] = useState(false);
   const [syncState, setSyncState] = useState<SyncState>({
     step: "",
     detail: "",
@@ -94,6 +99,22 @@ export default function App() {
     };
   }, []);
 
+  /** Load cached HLTB data then kick off a background fetch for any missing games. */
+  function startHltbFetch() {
+    setHltbLoading(true);
+    getHltbData()
+      .then((cached) => setHltbData(cached))
+      .catch(() => {});
+
+    fetchHltbData()
+      .then(() => getHltbData())
+      .then((updated) => {
+        setHltbData(updated);
+        setHltbLoading(false);
+      })
+      .catch(() => setHltbLoading(false));
+  }
+
   async function initialize() {
     try {
       const status = await checkConfig();
@@ -108,6 +129,7 @@ export default function App() {
       if (existing.length > 0) {
         setClassifications(existing);
         setPhase("ready");
+        startHltbFetch();
       } else {
         setPhase("setup");
       }
@@ -132,6 +154,7 @@ export default function App() {
       setClassifications(results);
 
       setPhase("ready");
+      startHltbFetch();
     } catch (e) {
       const msg = String(e);
       if (msg.includes("cancelled")) {
@@ -165,6 +188,7 @@ export default function App() {
       setClassifications(results);
 
       setPhase("ready");
+      startHltbFetch();
     } catch (e) {
       const msg = String(e);
       if (msg.includes("cancelled")) {
@@ -278,6 +302,8 @@ export default function App() {
         <main className="flex-1 overflow-hidden">
           <GameGrid
             games={filteredGames}
+            hltbData={hltbData}
+            hltbLoading={hltbLoading}
             onOverrideChange={async () => {
               const results = await classifyGames();
               setClassifications(results);

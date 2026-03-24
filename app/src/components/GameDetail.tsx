@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import {
   Classification,
   CategoryKey,
+  HltbData,
   CATEGORY_LABELS,
   CATEGORY_COLORS,
+  LENGTH_BUCKET_COLORS,
+  getLengthBucket,
+  formatHours,
   STEAM_HEADER_URL,
   getAmbiguitySuggestion,
   checkAiSetup,
@@ -12,6 +16,7 @@ import {
 
 interface Props {
   game: Classification;
+  hltbEntry: HltbData | null;
   onClose: () => void;
   onOverride: (appid: number, category: CategoryKey) => void;
 }
@@ -23,7 +28,7 @@ const CATEGORIES: CategoryKey[] = [
   "NOT_A_GAME",
 ];
 
-export default function GameDetail({ game, onClose, onOverride }: Props) {
+export default function GameDetail({ game, hltbEntry, onClose, onOverride }: Props) {
   const [aiSuggestion, setAiSuggestion] = useState<AmbiguityResponse | null>(
     null
   );
@@ -86,6 +91,44 @@ export default function GameDetail({ game, onClose, onOverride }: Props) {
           <div className="mb-4 p-3 rounded-lg bg-steam-bg text-sm text-steam-text-dim">
             {game.reason}
           </div>
+
+          {/* HowLongToBeat times */}
+          {hltbEntry && (hltbEntry.main_story != null || hltbEntry.main_extra != null || hltbEntry.completionist != null) && (
+            <div className="mb-4 p-3 rounded-lg bg-steam-bg border border-steam-border">
+              <div className="text-xs text-steam-text-dim uppercase tracking-wide font-medium mb-2">
+                HowLongToBeat
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {hltbEntry.main_story != null && (
+                  <div>
+                    <div
+                      className="text-base font-bold"
+                      style={{ color: LENGTH_BUCKET_COLORS[getLengthBucket(hltbEntry.main_story)] }}
+                    >
+                      {formatHours(hltbEntry.main_story)}
+                    </div>
+                    <div className="text-xs text-steam-text-dim mt-0.5">Main Story</div>
+                  </div>
+                )}
+                {hltbEntry.main_extra != null && (
+                  <div>
+                    <div className="text-base font-bold text-steam-text">
+                      {formatHours(hltbEntry.main_extra)}
+                    </div>
+                    <div className="text-xs text-steam-text-dim mt-0.5">Main + Extras</div>
+                  </div>
+                )}
+                {hltbEntry.completionist != null && (
+                  <div>
+                    <div className="text-base font-bold text-steam-text">
+                      {formatHours(hltbEntry.completionist)}
+                    </div>
+                    <div className="text-xs text-steam-text-dim mt-0.5">Completionist</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* AI suggestion */}
           {game.confidence === "MEDIUM" && !aiSuggestion && (

@@ -211,6 +211,74 @@ export function exportJson(): Promise<string> {
   return invoke("export_json");
 }
 
+// -- HowLongToBeat --
+
+export interface HltbData {
+  appid: number;
+  hltb_name: string;
+  main_story: number | null;
+  main_extra: number | null;
+  completionist: number | null;
+}
+
+export type LengthBucket =
+  | "Quick"
+  | "Short"
+  | "Medium"
+  | "Long"
+  | "VeryLong"
+  | "Unknown";
+
+export const LENGTH_BUCKET_LABELS: Record<LengthBucket, string> = {
+  Quick: "Quick  < 2h",
+  Short: "Short  2–8h",
+  Medium: "Medium  8–20h",
+  Long: "Long  20–50h",
+  VeryLong: "Epic  50h+",
+  Unknown: "Unknown",
+};
+
+export const LENGTH_BUCKET_COLORS: Record<LengthBucket, string> = {
+  Quick: "#4ade80",
+  Short: "#22d3ee",
+  Medium: "#fbbf24",
+  Long: "#f97316",
+  VeryLong: "#ef4444",
+  Unknown: "#6b7280",
+};
+
+export function getLengthBucket(mainStory: number | null): LengthBucket {
+  if (mainStory === null) return "Unknown";
+  if (mainStory < 2) return "Quick";
+  if (mainStory < 8) return "Short";
+  if (mainStory < 20) return "Medium";
+  if (mainStory < 50) return "Long";
+  return "VeryLong";
+}
+
+/** Format hours for display: "45m", "4.5h", "48h". */
+export function formatHours(hours: number): string {
+  if (hours < 1) return `${Math.round(hours * 60)}m`;
+  if (hours < 10) return `${hours.toFixed(1)}h`;
+  return `${Math.round(hours)}h`;
+}
+
+export function fetchHltbData(): Promise<void> {
+  return invoke("fetch_hltb_data");
+}
+
+export function getHltbData(): Promise<Record<string, HltbData>> {
+  return invoke("get_hltb_data");
+}
+
+export function onHltbProgress(
+  callback: (progress: SyncProgress) => void
+): Promise<UnlistenFn> {
+  return listen<SyncProgress>("hltb-progress", (event) => {
+    callback(event.payload);
+  });
+}
+
 // -- Helpers --
 
 export const CATEGORY_LABELS: Record<CategoryKey, string> = {

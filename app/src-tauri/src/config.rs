@@ -48,6 +48,14 @@ pub fn classifications_file() -> PathBuf {
     cache_dir().join("classifications_final.json")
 }
 
+pub fn hltb_cache_file() -> PathBuf {
+    cache_dir().join("hltb_data.json")
+}
+
+pub fn hltb_key_cache_file() -> PathBuf {
+    cache_dir().join("hltb_key.json")
+}
+
 pub fn load_config() -> Result<AppConfig, String> {
     let path = config_file();
     if !path.exists() {

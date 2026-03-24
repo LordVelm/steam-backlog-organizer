@@ -2,6 +2,7 @@ pub mod cache;
 pub mod classifier;
 pub mod collections;
 pub mod config;
+pub mod hltb;
 pub mod llm;
 pub mod steam_api;
 
@@ -20,6 +21,7 @@ struct AppState {
     classifications: Mutex<Vec<Classification>>,
     store_cache: Mutex<HashMap<String, steam_api::StoreDetails>>,
     overrides: Mutex<HashMap<String, String>>,
+    hltb_cache: Mutex<HashMap<u64, hltb::HltbData>>,
     sync_cancelled: Arc<AtomicBool>,
 }
 
@@ -819,6 +821,49 @@ async fn get_ambiguity_suggestion(
     }
 }
 
+// -- HowLongToBeat commands --
+
+/// Fetch HLTB completion-time data for every game in the library.
+/// Skips games already in the on-disk cache; saves incrementally.
+/// Emits `hltb-progress` events while running.
+#[tauri::command]
+async fn fetch_hltb_data(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+) -> Result<(), String> {
+    // Collect (appid, name) pairs from state or fall back to the library cache
+    let games: Vec<(u64, String)> = {
+        let lock = state.games.lock().map_err(|e| e.to_string())?;
+        if lock.is_empty() {
+            // App loaded with existing classifications but games not re-fetched yet
+            let cfg = config::load_config()?;
+            cache::load_library_cache(&cfg.steam_id)
+                .unwrap_or_default()
+                .into_iter()
+                .map(|g| (g.appid, g.name))
+                .collect()
+        } else {
+            lock.iter().map(|g| (g.appid, g.name.clone())).collect()
+        }
+    };
+
+    let updated = hltb::fetch_for_games(&state.client, &games, Some(&app), None).await;
+
+    let mut cache = state.hltb_cache.lock().map_err(|e| e.to_string())?;
+    *cache = updated;
+
+    Ok(())
+}
+
+/// Return the current HLTB cache (keyed by appid string for JSON compatibility).
+#[tauri::command]
+fn get_hltb_data(
+    state: State<'_, AppState>,
+) -> Result<HashMap<String, hltb::HltbData>, String> {
+    let cache = state.hltb_cache.lock().map_err(|e| e.to_string())?;
+    Ok(cache.iter().map(|(k, v)| (k.to_string(), v.clone())).collect())
+}
+
 // -- Export/Import --
 
 #[tauri::command]
@@ -834,6 +879,7 @@ pub fn run() {
     let overrides = cache::load_overrides();
     let saved_classifications: Vec<Classification> =
         cache::load_saved_classifications().into_values().collect();
+    let hltb_cache = hltb::load_hltb_cache();
 
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
@@ -843,6 +889,7 @@ pub fn run() {
             classifications: Mutex::new(saved_classifications),
             store_cache: Mutex::new(store_cache),
             overrides: Mutex::new(overrides),
+            hltb_cache: Mutex::new(hltb_cache),
             sync_cancelled: Arc::new(AtomicBool::new(false)),
         })
         .manage(LlmState {
@@ -881,6 +928,8 @@ pub fn run() {
             get_recommendations,
             get_ambiguity_suggestion,
             export_json,
+            fetch_hltb_data,
+            get_hltb_data,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application");
