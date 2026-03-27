@@ -268,7 +268,7 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
                 <>
                   {/* AI not set up */}
                   <div className="text-xs text-steam-text-dim mb-2">
-                    Download the AI model (~3.5 GB) to enable game
+                    Download the AI model (~9.5 GB) to enable game
                     recommendations and classification assistance. One-time
                     download — everything runs locally.
                   </div>
@@ -360,9 +360,9 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
                 <div className="text-xs font-medium text-steam-text mb-1">Recommended (with AI assistant)</div>
                 <ul className="text-xs text-steam-text-dim space-y-0.5">
                   <li>OS: Windows 10/11 64-bit</li>
-                  <li>RAM: 8 GB (16 GB for best performance)</li>
-                  <li>Storage: 5 GB free (AI model is ~3.5 GB)</li>
-                  <li>GPU: NVIDIA GPU with 4+ GB VRAM (optional, uses CUDA)</li>
+                  <li>RAM: 16 GB (32 GB for best performance)</li>
+                  <li>Storage: 11 GB free (AI model is ~9.5 GB)</li>
+                  <li>GPU: NVIDIA GPU with 12+ GB VRAM (optional, uses CUDA)</li>
                   <li>CPU fallback: Works without GPU, responses are slower</li>
                 </ul>
               </div>

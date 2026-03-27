@@ -64,9 +64,14 @@ export default function ChatPanel({ onClose }: Props) {
 
     try {
       const response = await getRecommendations(message, chatHistory);
+      // Guard against empty or filler responses from the model
+      const isEmptyMessage = !response.message || /^\W*$/.test(response.message);
+      const fallbackMessage = response.picks.length > 0
+        ? "Here are my picks:"
+        : "Hmm, I'm not sure what to suggest there — try asking for a specific genre or mood!";
       const assistantContent = response.picks.length > 0
-        ? (response.used_llm ? response.message || "Here are my picks:" : "Here are some suggestions from your backlog:")
-        : (response.message || "I couldn't find a great match — try asking differently!");
+        ? (response.used_llm ? (isEmptyMessage ? fallbackMessage : response.message) : "Here are some suggestions from your backlog:")
+        : (isEmptyMessage ? fallbackMessage : response.message);
       setHistory((h) => [
         ...h,
         {
