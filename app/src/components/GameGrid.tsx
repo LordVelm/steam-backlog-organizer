@@ -18,17 +18,29 @@ interface Props {
   hltbCache: Record<string, HltbEntry>;
   hltbFetching: boolean;
   hltbProgress: { current: number; total: number } | null;
+  playtimeMap: Record<string, number>;
   onOverrideChange: () => void;
 }
 
-export default function GameGrid({ games, hltbCache, hltbFetching, hltbProgress, onOverrideChange }: Props) {
+export default function GameGrid({ games, hltbCache, hltbFetching, hltbProgress, playtimeMap, onOverrideChange }: Props) {
   const [search, setSearch] = useState("");
   const [selectedGame, setSelectedGame] = useState<Classification | null>(null);
   const [showTips, setShowTips] = useState(false);
-  const [shortGamesOnly, setShortGamesOnly] = useState(false);
-  const [maxHours, setMaxHours] = useState(10);
-  const [maxHoursInput, setMaxHoursInput] = useState("10");
-  const [includeUnknown, setIncludeUnknown] = useState(false);
+  const [shortGamesOnly, setShortGamesOnly] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HLTB_FILTER_KEY) || "{}").on ?? false; } catch { return false; }
+  });
+  const [maxHours, setMaxHours] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HLTB_FILTER_KEY) || "{}").max ?? 10; } catch { return 10; }
+  });
+  const [maxHoursInput, setMaxHoursInput] = useState(() => String(maxHours));
+  const [includeUnknown, setIncludeUnknown] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HLTB_FILTER_KEY) || "{}").unknown ?? false; } catch { return false; }
+  });
+
+  // Persist filter settings
+  useEffect(() => {
+    localStorage.setItem(HLTB_FILTER_KEY, JSON.stringify({ on: shortGamesOnly, max: maxHours, unknown: includeUnknown }));
+  }, [shortGamesOnly, maxHours, includeUnknown]);
 
   useEffect(() => {
     const dismissed = localStorage.getItem(TIPS_DISMISSED_KEY);
@@ -218,6 +230,7 @@ export default function GameGrid({ games, hltbCache, hltbFetching, hltbProgress,
         <GameDetail
           game={selectedGame}
           hltb={hltbCache[String(selectedGame.appid)]}
+          playtimeHours={playtimeMap[String(selectedGame.appid)] ?? 0}
           onClose={() => setSelectedGame(null)}
           onOverride={async (appid, category) => {
             await setOverride(String(appid), category);

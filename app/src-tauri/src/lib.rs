@@ -592,7 +592,7 @@ fn build_candidate_summaries(
     hltb_cache: &HashMap<String, hltb::HltbEntry>,
 ) -> Vec<serde_json::Value> {
     let mut summaries = Vec::new();
-    for c in candidates.iter().take(30) {
+    for c in candidates.iter().take(40) {
         let playtime = games
             .iter()
             .find(|g| g.appid == c.appid)

@@ -14,6 +14,7 @@ import {
 interface Props {
   game: Classification;
   hltb?: HltbEntry;
+  playtimeHours?: number;
   onClose: () => void;
   onOverride: (appid: number, category: CategoryKey) => void;
 }
@@ -25,7 +26,7 @@ const CATEGORIES: CategoryKey[] = [
   "NOT_A_GAME",
 ];
 
-export default function GameDetail({ game, hltb, onClose, onOverride }: Props) {
+export default function GameDetail({ game, hltb, playtimeHours = 0, onClose, onOverride }: Props) {
   const [aiSuggestion, setAiSuggestion] = useState<AmbiguityResponse | null>(
     null
   );
@@ -92,10 +93,9 @@ export default function GameDetail({ game, hltb, onClose, onOverride }: Props) {
                   <div className="text-[10px] text-steam-text-dim uppercase tracking-wide">~Time Left</div>
                   <div className="text-sm font-semibold text-white">
                     {(() => {
-                      // Approximate playtime from classification reason or show full estimate
-                      const timeLeft = hltb.main_story_hours!;
-                      return timeLeft > 0
-                        ? `${timeLeft}h`
+                      const remaining = Math.round((hltb.main_story_hours! - playtimeHours) * 10) / 10;
+                      return remaining > 0
+                        ? `${remaining}h`
                         : <span className="text-[#4CAF50]">Likely complete</span>;
                     })()}
                   </div>
