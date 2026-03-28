@@ -16,3 +16,4 @@ package-lock.json
 
 # Personal
 linkedin-*.md
+.gstack/

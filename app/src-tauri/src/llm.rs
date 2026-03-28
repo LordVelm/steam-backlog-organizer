@@ -507,7 +507,12 @@ pub async fn run_recommendation_inference(
             enthusiastically and build on it — share more about why that game is great, \
             or suggest something similar. Never respond with just \"...\" or empty filler.\n\
          9. Always write a substantive message, even for conversational replies. \
-            A good conversational reply is 1-3 sentences that add value.\n\n\
+            A good conversational reply is 1-3 sentences that add value.\n\
+         10. Games may include hltb_hours (estimated completion time) and hours_left \
+            (time remaining based on playtime). When the user mentions time \
+            (\"I have 2 hours\", \"something short\", \"tonight\"), prioritize games \
+            where hours_left fits. Mention time naturally. If a game has no hltb_hours, \
+            you can still recommend it but note time is unknown.\n\n\
          CANDIDATE LIST (the user's games — only recommend from these):\n{candidates_json}\n\n\
          Respond with ONLY valid JSON:\n\
          {{\"message\": \"Your natural conversational response (1-3 sentences, varied tone)\", \

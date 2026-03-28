@@ -49,14 +49,16 @@ npx tauri build
 - **Manual overrides** — Fix any game the rules got wrong. Overrides always take priority
 - **Cloud sync** — Collections sync across machines via Steam Cloud
 - **Caching** — Library and store data cached locally to avoid redundant API calls
-- **"What should I play next?"** — Conversational AI chat panel with personalized game recommendations
+- **HowLongToBeat integration** — Completion time estimates for every game in your library, fetched automatically
+- **"Short games" filter** — Find games that fit your schedule with adjustable max hours slider
+- **"What should I play next?"** — Conversational AI chat panel with personalized, time-aware game recommendations
 - **AI ambiguity assistant** — For uncertain classifications, ask AI for a second opinion
 - **Vanity URL support** — Enter your Steam ID or custom profile URL name
 - **Export** — Download your classifications as JSON
 
 ## Optional: Local AI
 
-The app bundles a local AI engine (Qwen2.5-7B) for smarter game recommendations and classification second opinions. On first use, it downloads the model (~3.5 GB) — no external software needed.
+The app bundles a local AI engine (Qwen3.5-9B) for smarter game recommendations and classification second opinions. On first use, it downloads the model (~9.5 GB) — no external software needed.
 
 To set up: **Settings > AI Assistant > Download AI Model**
 
@@ -71,14 +73,15 @@ The AI is **never** used for core classification — rules stay canonical. GPU a
 | | Minimum (without AI) | Recommended (with AI) |
 |---|---|---|
 | OS | Windows 10 64-bit | Windows 10/11 64-bit |
-| RAM | 4 GB | 8 GB (16 GB for best performance) |
-| Storage | 100 MB | 5 GB free |
-| GPU | Not required | NVIDIA GPU with 4+ GB VRAM (optional) |
+| RAM | 4 GB | 16 GB |
+| Storage | 100 MB | 12 GB free |
+| GPU | Not required | NVIDIA GPU with 12+ GB VRAM (optional) |
 | Network | Internet for Steam API sync | Internet for Steam API sync |
 
 ## Important Notes
 
-- **First sync takes time** — Steam's API is rate-limited, so fetching achievements and store details for a large library (500+ games) can take 10–15 minutes. This is a one-time process — subsequent launches use cached data and only fetch new games.
+- **First sync takes time** — Steam's API is rate-limited, so fetching achievements, store details, and completion times for a large library (500+ games) can take 10–15 minutes. This is a one-time process — subsequent launches use cached data and only fetch new games.
+- **Completion time data** — Provided by [HowLongToBeat](https://howlongtobeat.com/) (community-sourced, unofficial integration). Data is cached locally and refreshed after each sync.
 - **Steam must be closed** when writing collections
 - **API keys are stored locally** in `%APPDATA%/Gamekeeper/config/settings.json`
 - **All data stays on your machine** — no cloud services, no telemetry

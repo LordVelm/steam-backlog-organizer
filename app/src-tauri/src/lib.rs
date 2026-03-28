@@ -2,6 +2,7 @@ pub mod cache;
 pub mod classifier;
 pub mod collections;
 pub mod config;
+pub mod hltb;
 pub mod llm;
 pub mod steam_api;
 
@@ -20,7 +21,10 @@ struct AppState {
     classifications: Mutex<Vec<Classification>>,
     store_cache: Mutex<HashMap<String, steam_api::StoreDetails>>,
     overrides: Mutex<HashMap<String, String>>,
+    hltb_cache: Mutex<HashMap<String, hltb::HltbEntry>>,
     sync_cancelled: Arc<AtomicBool>,
+    hltb_cancelled: Arc<AtomicBool>,
+    hltb_fetching: Arc<AtomicBool>,
 }
 
 // -- Tauri commands --
@@ -582,6 +586,51 @@ fn extract_picks_from_message(message: &str) -> Option<Vec<llm::GameRecommendati
     Some(picks)
 }
 
+/// Build candidate summaries for AI inference, enriched with HLTB data.
+fn build_candidate_summaries(
+    candidates: &[&Classification],
+    games: &[steam_api::OwnedGame],
+    store_cache: &HashMap<String, steam_api::StoreDetails>,
+    hltb_cache: &HashMap<String, hltb::HltbEntry>,
+) -> Vec<serde_json::Value> {
+    let mut summaries = Vec::new();
+    for c in candidates.iter().take(40) {
+        let playtime = games
+            .iter()
+            .find(|g| g.appid == c.appid)
+            .map(|g| g.playtime_hours)
+            .unwrap_or(0.0);
+
+        let store = store_cache.get(&c.appid.to_string());
+        let genres = store.map(|s| s.genres.join(", ")).unwrap_or_default();
+        let categories = store.map(|s| s.categories.join(", ")).unwrap_or_default();
+
+        let hltb = hltb_cache.get(&c.appid.to_string());
+        let main_story_hours = hltb.and_then(|h| h.main_story_hours);
+        let time_remaining = main_story_hours.map(|msh| ((msh - playtime).max(0.0) * 10.0).round() / 10.0);
+
+        let mut summary = serde_json::json!({
+            "appid": c.appid,
+            "title": c.name,
+            "category": c.category.to_string(),
+            "playtime_hours": playtime,
+            "genres": genres,
+            "store_tags": categories,
+        });
+
+        // Include HLTB data compactly when available
+        if let Some(hours) = main_story_hours {
+            summary["hltb_hours"] = serde_json::json!(hours);
+        }
+        if let Some(remaining) = time_remaining {
+            summary["hours_left"] = serde_json::json!(remaining);
+        }
+
+        summaries.push(summary);
+    }
+    summaries
+}
+
 #[tauri::command]
 async fn get_recommendations(
     state: State<'_, AppState>,
@@ -592,6 +641,7 @@ async fn get_recommendations(
     let classifications = state.classifications.lock().map_err(|e| e.to_string())?.clone();
     let store_cache = state.store_cache.lock().map_err(|e| e.to_string())?.clone();
     let games = state.games.lock().map_err(|e| e.to_string())?.clone();
+    let hltb_cache = state.hltb_cache.lock().map_err(|e| e.to_string())?.clone();
 
     // Step 1: Deterministic candidate filtering
     let candidates: Vec<&Classification> = classifications
@@ -608,27 +658,7 @@ async fn get_recommendations(
     }
 
     // Build a compact profile of candidates (max 40 for LLM context)
-    let mut candidate_summaries: Vec<serde_json::Value> = Vec::new();
-    for c in candidates.iter().take(40) {
-        let playtime = games
-            .iter()
-            .find(|g| g.appid == c.appid)
-            .map(|g| g.playtime_hours)
-            .unwrap_or(0.0);
-
-        let store = store_cache.get(&c.appid.to_string());
-        let genres = store.map(|s| s.genres.join(", ")).unwrap_or_default();
-        let categories = store.map(|s| s.categories.join(", ")).unwrap_or_default();
-
-        candidate_summaries.push(serde_json::json!({
-            "appid": c.appid,
-            "title": c.name,
-            "category": c.category.to_string(),
-            "playtime_hours": playtime,
-            "genres": genres,
-            "store_tags": categories,
-        }));
-    }
+    let candidate_summaries = build_candidate_summaries(&candidates, &games, &store_cache, &hltb_cache);
 
     // Step 2: Check if AI is set up
     let data_dir = llm::get_data_dir(&app);
@@ -819,6 +849,61 @@ async fn get_ambiguity_suggestion(
     }
 }
 
+// -- HLTB --
+
+#[tauri::command]
+fn get_hltb_cache(_state: State<'_, AppState>) -> Result<HashMap<String, hltb::HltbEntry>, String> {
+    // Read from disk to always get the latest data, even during background fetch
+    Ok(cache::load_hltb_cache())
+}
+
+#[tauri::command]
+async fn fetch_hltb_data(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+) -> Result<(), String> {
+    // Prevent concurrent HLTB fetches
+    if state.hltb_fetching.load(Ordering::SeqCst) {
+        return Ok(());
+    }
+
+    let classifications = state.classifications.lock().map_err(|e| e.to_string())?.clone();
+    let existing_cache = state.hltb_cache.lock().map_err(|e| e.to_string())?.clone();
+    let cancel = state.hltb_cancelled.clone();
+    let fetching = state.hltb_fetching.clone();
+
+    // Reset cancel flag for new fetch
+    cancel.store(false, Ordering::SeqCst);
+    fetching.store(true, Ordering::SeqCst);
+
+    // Build game list with categories for priority sorting
+    let games: Vec<(u64, String, String)> = classifications
+        .iter()
+        .map(|c| (c.appid, c.name.clone(), c.category.to_string()))
+        .collect();
+
+    // Spawn background task — updates are saved to disk by fetch_hltb_batch.
+    // Frontend re-reads via get_hltb_cache after hltb-complete event.
+    let app_handle = app.clone();
+    tokio::spawn(async move {
+        match hltb::fetch_hltb_batch(games, existing_cache, app_handle.clone(), cancel).await {
+            Ok(new_cache) => {
+                let app_state: tauri::State<AppState> = app_handle.state();
+                match app_state.hltb_cache.lock() {
+                    Ok(mut guard) => { *guard = new_cache; }
+                    Err(e) => eprintln!("[HLTB] Failed to update cache: {e}"),
+                };
+            }
+            Err(e) => {
+                eprintln!("HLTB fetch error: {e}");
+            }
+        }
+        fetching.store(false, Ordering::SeqCst);
+    });
+
+    Ok(())
+}
+
 // -- Export/Import --
 
 #[tauri::command]
@@ -832,6 +917,7 @@ pub fn run() {
     // Load persisted data
     let store_cache = cache::load_store_cache();
     let overrides = cache::load_overrides();
+    let hltb_cache = cache::load_hltb_cache();
     let saved_classifications: Vec<Classification> =
         cache::load_saved_classifications().into_values().collect();
 
@@ -843,7 +929,10 @@ pub fn run() {
             classifications: Mutex::new(saved_classifications),
             store_cache: Mutex::new(store_cache),
             overrides: Mutex::new(overrides),
+            hltb_cache: Mutex::new(hltb_cache),
             sync_cancelled: Arc::new(AtomicBool::new(false)),
+            hltb_cancelled: Arc::new(AtomicBool::new(false)),
+            hltb_fetching: Arc::new(AtomicBool::new(false)),
         })
         .manage(LlmState {
             server_process: Mutex::new(None),
@@ -880,6 +969,8 @@ pub fn run() {
             cancel_sync,
             get_recommendations,
             get_ambiguity_suggestion,
+            get_hltb_cache,
+            fetch_hltb_data,
             export_json,
         ])
         .build(tauri::generate_context!())
@@ -887,8 +978,16 @@ pub fn run() {
 
     app.run(|app_handle, event| {
         if let tauri::RunEvent::Exit = event {
-            let state = app_handle.state::<LlmState>();
-            llm::stop_server(&state);
+            let llm_state = app_handle.state::<LlmState>();
+            llm::stop_server(&llm_state);
+            // Save HLTB cache on exit
+            {
+                let app_state: tauri::State<AppState> = app_handle.state();
+                match app_state.hltb_cache.lock() {
+                    Ok(cache) => { let _ = cache::save_hltb_cache(&cache); }
+                    Err(_) => eprintln!("[HLTB] Could not save cache on exit (mutex poisoned)"),
+                };
+            }
         }
     });
 }

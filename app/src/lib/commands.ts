@@ -211,6 +211,39 @@ export function exportJson(): Promise<string> {
   return invoke("export_json");
 }
 
+// -- HLTB --
+
+export interface HltbEntry {
+  main_story_hours: number | null;
+  main_extra_hours: number | null;
+  completionist_hours: number | null;
+  hltb_game_id: string | null;
+  match_status: string;
+  fetched_at: number;
+}
+
+export interface HltbComplete {
+  matched: number;
+  total: number;
+  new_matches: number;
+}
+
+export function getHltbCache(): Promise<Record<string, HltbEntry>> {
+  return invoke("get_hltb_cache");
+}
+
+export function fetchHltbData(): Promise<void> {
+  return invoke("fetch_hltb_data");
+}
+
+export function onHltbComplete(
+  callback: (data: HltbComplete) => void
+): Promise<UnlistenFn> {
+  return listen<HltbComplete>("hltb-complete", (event) => {
+    callback(event.payload);
+  });
+}
+
 // -- Helpers --
 
 export const CATEGORY_LABELS: Record<CategoryKey, string> = {

@@ -283,6 +283,31 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
             </div>
           </div>
 
+          {/* HLTB */}
+          <div className="pt-3 border-t border-steam-border">
+            <h3 className="text-sm font-medium text-steam-text mb-2 uppercase tracking-wide">
+              Completion Times
+            </h3>
+            <div className="text-xs text-steam-text-dim space-y-2">
+              <p>
+                Completion time estimates are provided by{" "}
+                <a
+                  href="https://howlongtobeat.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-steam-blue hover:underline"
+                >
+                  HowLongToBeat
+                </a>
+                . This is an unofficial integration using community-sourced data.
+              </p>
+              <p>
+                HLTB data is fetched automatically after each sync and cached locally.
+                Use the "Short games" filter in the library to find games that fit your schedule.
+              </p>
+            </div>
+          </div>
+
           {/* Data */}
           <div className="pt-3 border-t border-steam-border">
             <h3 className="text-sm font-medium text-steam-text mb-2 uppercase tracking-wide">

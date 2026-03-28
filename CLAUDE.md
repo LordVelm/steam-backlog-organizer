@@ -279,6 +279,23 @@ This is a dev-only tool — remove before shipping.
 | `gui.py` | Current UX flows to replicate |
 | `build.py` / `*.spec` | Packaging expectations |
 | `README.md` | User-facing behavior and version history |
+| **`docs/HLTB_SHORT_GAMES_PLAN.md`** | **Specced feature:** HowLongToBeat integration + “Short games only” filter — **full implementation handoff** (paste or attach for Claude) |
+
+---
+
+## Specced feature: HowLongToBeat + “Short games only” filter
+
+**Canonical spec (implement from this file):** [`docs/HLTB_SHORT_GAMES_PLAN.md`](docs/HLTB_SHORT_GAMES_PLAN.md)
+
+**Goal:** Pull community playtime estimates from **HowLongToBeat** (unofficial API / crate / HTTP), cache per Steam `appid`, and add a **“Short games only”** filter (main story ≤ configurable hours) so users can answer “Do I have time to start this?” — composed with existing category filters and search.
+
+**Constraints:** HLTB has **no official API**; integration can break if the site changes. Use **disk cache** (`hltb_data.json`), clear **attribution** in UI, and a **Settings** note. Keep HLTB data in a **parallel cache**; do not embed in `Classification` / `classifications_final.json` for v1.
+
+**Backend (Tauri/Rust):** New `hltb` module, `AppState.hltb_cache`, `load_hltb_cache` / `save_hltb_cache`, commands `fetch_hltb_data` + `get_hltb_cache`, rate limits + `sync-progress` + cancel — details and checklist are in the doc above.
+
+**Frontend:** Types/invokes in `commands.ts`, load cache on ready, optional HLTB fetch after sync, toggle + max hours + “include games without HLTB data” in `GameGrid`, HLTB line in `GameDetail`, Settings copy + link to https://howlongtobeat.com/
+
+When asked to build this feature, **read `docs/HLTB_SHORT_GAMES_PLAN.md` first** and implement against that document.
 
 ---
 

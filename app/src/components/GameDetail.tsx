@@ -5,6 +5,7 @@ import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
   STEAM_HEADER_URL,
+  HltbEntry,
   getAmbiguitySuggestion,
   checkAiSetup,
   AmbiguityResponse,
@@ -12,6 +13,8 @@ import {
 
 interface Props {
   game: Classification;
+  hltb?: HltbEntry;
+  playtimeHours?: number;
   onClose: () => void;
   onOverride: (appid: number, category: CategoryKey) => void;
 }
@@ -23,7 +26,7 @@ const CATEGORIES: CategoryKey[] = [
   "NOT_A_GAME",
 ];
 
-export default function GameDetail({ game, onClose, onOverride }: Props) {
+export default function GameDetail({ game, hltb, playtimeHours = 0, onClose, onOverride }: Props) {
   const [aiSuggestion, setAiSuggestion] = useState<AmbiguityResponse | null>(
     null
   );
@@ -81,6 +84,66 @@ export default function GameDetail({ game, onClose, onOverride }: Props) {
               {game.confidence}
             </span>
           </div>
+
+          {/* HLTB completion times */}
+          {hltb && hltb.match_status === "matched" && hltb.main_story_hours != null && (
+            <div className="mb-4 p-3 rounded-lg bg-steam-bg">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-[10px] text-steam-text-dim uppercase tracking-wide">~Time Left</div>
+                  <div className="text-sm font-semibold text-white">
+                    {(() => {
+                      const remaining = Math.round((hltb.main_story_hours! - playtimeHours) * 10) / 10;
+                      return remaining > 0
+                        ? `${remaining}h`
+                        : <span className="text-[#4CAF50]">Likely complete</span>;
+                    })()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-steam-text-dim uppercase tracking-wide">Main Story</div>
+                  <div className="text-xs text-steam-text-dim">{hltb.main_story_hours}h</div>
+                </div>
+                {hltb.main_extra_hours != null && (
+                  <div>
+                    <div className="text-[10px] text-steam-text-dim uppercase tracking-wide">Main + Extra</div>
+                    <div className="text-xs text-steam-text-dim">{hltb.main_extra_hours}h</div>
+                  </div>
+                )}
+                {hltb.completionist_hours != null && (
+                  <div>
+                    <div className="text-[10px] text-steam-text-dim uppercase tracking-wide">Completionist</div>
+                    <div className="text-xs text-steam-text-dim">{hltb.completionist_hours}h</div>
+                  </div>
+                )}
+              </div>
+              <div className="mt-2 text-[10px] text-steam-text-dim">
+                Data from{" "}
+                <a
+                  href="https://howlongtobeat.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-steam-blue hover:underline"
+                >
+                  HowLongToBeat
+                </a>
+                {" "}&middot; community-sourced estimates
+              </div>
+            </div>
+          )}
+          {hltb && hltb.match_status === "no_match" && (
+            <div className="mb-4 p-3 rounded-lg bg-steam-bg text-xs text-steam-text-dim">
+              No completion time estimate available.{" "}
+              <a
+                href={`https://howlongtobeat.com/?q=${encodeURIComponent(game.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-steam-blue hover:underline"
+              >
+                Search HLTB
+              </a>
+            </div>
+          )}
 
           {/* Reason */}
           <div className="mb-4 p-3 rounded-lg bg-steam-bg text-sm text-steam-text-dim">

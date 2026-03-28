@@ -5,21 +5,42 @@ import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
   STEAM_HEADER_URL,
+  HltbEntry,
   setOverride,
 } from "../lib/commands";
 import GameDetail from "./GameDetail";
 
 const TIPS_DISMISSED_KEY = "steam-backlog-tips-dismissed";
+const HLTB_FILTER_KEY = "gamekeeper-hltb-filter";
 
 interface Props {
   games: Classification[];
+  hltbCache: Record<string, HltbEntry>;
+  hltbFetching: boolean;
+  hltbProgress: { current: number; total: number } | null;
+  playtimeMap: Record<string, number>;
   onOverrideChange: () => void;
 }
 
-export default function GameGrid({ games, onOverrideChange }: Props) {
+export default function GameGrid({ games, hltbCache, hltbFetching, hltbProgress, playtimeMap, onOverrideChange }: Props) {
   const [search, setSearch] = useState("");
   const [selectedGame, setSelectedGame] = useState<Classification | null>(null);
   const [showTips, setShowTips] = useState(false);
+  const [shortGamesOnly, setShortGamesOnly] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HLTB_FILTER_KEY) || "{}").on ?? false; } catch { return false; }
+  });
+  const [maxHours, setMaxHours] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HLTB_FILTER_KEY) || "{}").max ?? 10; } catch { return 10; }
+  });
+  const [maxHoursInput, setMaxHoursInput] = useState(() => String(maxHours));
+  const [includeUnknown, setIncludeUnknown] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(HLTB_FILTER_KEY) || "{}").unknown ?? false; } catch { return false; }
+  });
+
+  // Persist filter settings
+  useEffect(() => {
+    localStorage.setItem(HLTB_FILTER_KEY, JSON.stringify({ on: shortGamesOnly, max: maxHours, unknown: includeUnknown }));
+  }, [shortGamesOnly, maxHours, includeUnknown]);
 
   useEffect(() => {
     const dismissed = localStorage.getItem(TIPS_DISMISSED_KEY);
@@ -27,29 +48,111 @@ export default function GameGrid({ games, onOverrideChange }: Props) {
   }, []);
 
   const sorted = useMemo(() => {
-    const filtered = search.trim()
+    const searchActive = search.trim().length > 0;
+    let filtered = searchActive
       ? games.filter((g) =>
           g.name.toLowerCase().includes(search.toLowerCase())
         )
       : games;
+
+    // Apply HLTB filter only when toggled on AND no search is active
+    if (shortGamesOnly && !searchActive) {
+      filtered = filtered.filter((g) => {
+        const hltb = hltbCache[String(g.appid)];
+        if (!hltb || hltb.main_story_hours == null) return includeUnknown;
+        return hltb.main_story_hours <= maxHours;
+      });
+    }
+
     return [...filtered].sort((a, b) =>
       a.name.toLowerCase().localeCompare(b.name.toLowerCase())
     );
-  }, [games, search]);
+  }, [games, search, shortGamesOnly, maxHours, includeUnknown, hltbCache]);
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search bar */}
+      {/* Search bar + HLTB filter */}
       <div className="p-4 border-b border-steam-border">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search games..."
-          className="w-full px-3 py-2 rounded-lg bg-steam-surface border border-steam-border text-white placeholder-steam-text-dim focus:border-steam-blue focus:outline-none text-sm"
-        />
-        <div className="mt-2 text-xs text-steam-text-dim">
-          {sorted.length} game{sorted.length !== 1 ? "s" : ""}
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search games..."
+            className="flex-1 px-3 py-2 rounded-lg bg-steam-surface border border-steam-border text-white placeholder-steam-text-dim focus:border-steam-blue focus:outline-none text-sm"
+          />
+          <button
+            onClick={() => setShortGamesOnly(!shortGamesOnly)}
+            className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+              shortGamesOnly
+                ? "bg-steam-blue text-white"
+                : "bg-steam-surface border border-steam-border text-steam-text-dim hover:text-white"
+            }`}
+            aria-label="Short games only filter"
+            role="switch"
+            aria-checked={shortGamesOnly}
+          >
+            Short games
+          </button>
+        </div>
+
+        {/* HLTB filter controls (visible when toggle is on) */}
+        {shortGamesOnly && (
+          <div className="mt-2 flex flex-wrap items-center gap-3 p-2 rounded-lg bg-steam-bg">
+            <div className="flex items-center gap-2">
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={Math.min(maxHours, 100)}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setMaxHours(val);
+                  setMaxHoursInput(String(val));
+                }}
+                className="w-28 accent-steam-blue"
+                aria-label="Maximum game length in hours"
+              />
+              <span className="text-xs text-steam-text-dim">&le;</span>
+              <input
+                type="text"
+                value={maxHoursInput}
+                onChange={(e) => {
+                  setMaxHoursInput(e.target.value);
+                  const val = Number(e.target.value);
+                  if (!isNaN(val) && isFinite(val) && val > 0) setMaxHours(val);
+                }}
+                onBlur={() => setMaxHoursInput(String(maxHours))}
+                className="w-12 px-1 py-0.5 rounded bg-steam-surface border border-steam-border text-steam-blue text-xs text-center font-semibold"
+              />
+              <span className="text-xs text-steam-text-dim">hours</span>
+            </div>
+            <label className="flex items-center gap-1.5 text-xs text-steam-text-dim cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeUnknown}
+                onChange={(e) => setIncludeUnknown(e.target.checked)}
+                className="accent-steam-blue"
+              />
+              Include unknown
+            </label>
+          </div>
+        )}
+
+        <div className="mt-2 flex items-center gap-2 text-xs text-steam-text-dim">
+          <span>{sorted.length} game{sorted.length !== 1 ? "s" : ""}</span>
+          {hltbFetching && hltbProgress && (
+            <span className="text-steam-blue">
+              Fetching completion times... {hltbProgress.current}/{hltbProgress.total}
+              {hltbProgress.total > 0 && ` (~${Math.ceil((hltbProgress.total - hltbProgress.current) / 3 / 60)}m remaining)`}
+            </span>
+          )}
+          {shortGamesOnly && hltbFetching && !hltbProgress && (
+            <span className="text-yellow-500">HLTB data still loading.</span>
+          )}
+          {shortGamesOnly && !hltbFetching && Object.keys(hltbCache).length === 0 && (
+            <span>No HLTB data yet. Sync your library to fetch completion times.</span>
+          )}
         </div>
       </div>
 
@@ -109,6 +212,7 @@ export default function GameGrid({ games, onOverrideChange }: Props) {
             <GameCard
               key={game.appid}
               game={game}
+              hltb={hltbCache[String(game.appid)]}
               onClick={() => setSelectedGame(game)}
             />
           ))}
@@ -125,6 +229,8 @@ export default function GameGrid({ games, onOverrideChange }: Props) {
       {selectedGame && (
         <GameDetail
           game={selectedGame}
+          hltb={hltbCache[String(selectedGame.appid)]}
+          playtimeHours={playtimeMap[String(selectedGame.appid)] ?? 0}
           onClose={() => setSelectedGame(null)}
           onOverride={async (appid, category) => {
             await setOverride(String(appid), category);
@@ -139,13 +245,16 @@ export default function GameGrid({ games, onOverrideChange }: Props) {
 
 function GameCard({
   game,
+  hltb,
   onClick,
 }: {
   game: Classification;
+  hltb?: HltbEntry;
   onClick: () => void;
 }) {
   const [imgError, setImgError] = useState(false);
   const color = CATEGORY_COLORS[game.category];
+  const mainHours = hltb?.main_story_hours;
 
   return (
     <button
@@ -174,14 +283,21 @@ function GameCard({
         <div className="text-sm text-white truncate font-medium">
           {game.name}
         </div>
-        <div className="flex items-center gap-1.5 mt-1">
-          <span
-            className="w-2 h-2 rounded-full shrink-0"
-            style={{ backgroundColor: color }}
-          />
-          <span className="text-xs text-steam-text-dim truncate">
-            {CATEGORY_LABELS[game.category]}
-          </span>
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-1.5">
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{ backgroundColor: color }}
+            />
+            <span className="text-xs text-steam-text-dim truncate">
+              {CATEGORY_LABELS[game.category]}
+            </span>
+          </div>
+          {mainHours != null && (
+            <span className="text-[10px] text-steam-text-dim">
+              <span className="text-steam-blue font-semibold">{mainHours}h</span> main
+            </span>
+          )}
         </div>
       </div>
     </button>

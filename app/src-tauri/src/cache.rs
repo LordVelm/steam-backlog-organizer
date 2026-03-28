@@ -1,5 +1,6 @@
 use crate::classifier::Classification;
 use crate::config;
+use crate::hltb::HltbEntry;
 use crate::steam_api::{OwnedGame, StoreDetails};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -133,6 +134,29 @@ pub fn save_classifications(classifications: &[Classification]) -> Result<(), St
         .map_err(|e| format!("Failed to serialize classifications: {e}"))?;
     fs::write(config::classifications_file(), data)
         .map_err(|e| format!("Failed to write classifications: {e}"))
+}
+
+/// Load HLTB cache.
+pub fn load_hltb_cache() -> HashMap<String, HltbEntry> {
+    let path = config::hltb_cache_file();
+    if !path.exists() {
+        return HashMap::new();
+    }
+    let data = match fs::read_to_string(&path) {
+        Ok(d) => d,
+        Err(_) => return HashMap::new(),
+    };
+    serde_json::from_str(&data).unwrap_or_default()
+}
+
+/// Save HLTB cache.
+pub fn save_hltb_cache(cache: &HashMap<String, HltbEntry>) -> Result<(), String> {
+    let dir = config::cache_dir();
+    fs::create_dir_all(&dir).map_err(|e| format!("Failed to create cache dir: {e}"))?;
+    let data = serde_json::to_string_pretty(cache)
+        .map_err(|e| format!("Failed to serialize HLTB cache: {e}"))?;
+    fs::write(config::hltb_cache_file(), data)
+        .map_err(|e| format!("Failed to write HLTB cache: {e}"))
 }
 
 /// Load user overrides (appid string → category string).

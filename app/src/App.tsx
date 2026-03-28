@@ -7,9 +7,14 @@ import {
   getClassifications,
   onSyncProgress,
   cancelSync,
+  getHltbCache,
+  fetchHltbData,
+  onHltbComplete,
   Classification,
   CategoryKey,
   ConfigStatus,
+  HltbEntry,
+  OwnedGame,
   SyncProgress as SyncProgressEvent,
 } from "./lib/commands";
 import TitleBar from "./components/TitleBar";
@@ -54,6 +59,10 @@ export default function App() {
   const [showWriteToSteam, setShowWriteToSteam] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [hltbCache, setHltbCache] = useState<Record<string, HltbEntry>>({});
+  const [hltbFetching, setHltbFetching] = useState(false);
+  const [hltbProgress, setHltbProgress] = useState<{ current: number; total: number } | null>(null);
+  const [playtimeMap, setPlaytimeMap] = useState<Record<string, number>>({});
 
   // Track when each sync step started for ETA calculation
   const stepStartTime = useRef<number>(0);
@@ -61,6 +70,16 @@ export default function App() {
 
   useEffect(() => {
     initialize();
+
+    // Load HLTB cache on startup
+    getHltbCache().then(setHltbCache).catch(() => {});
+
+    const unlistenHltb = onHltbComplete((data) => {
+      setHltbFetching(false);
+      setHltbProgress(null);
+      // Reload cache after fetch completes
+      getHltbCache().then(setHltbCache).catch(() => {});
+    });
 
     const unlisten = onSyncProgress((p: SyncProgressEvent) => {
       // Reset timer when step changes
@@ -87,12 +106,36 @@ export default function App() {
         total: p.total,
         eta,
       });
+
+      // Track HLTB fetch progress separately for the ready-state banner
+      if (p.step === "Fetching completion times") {
+        setHltbProgress({ current: p.current, total: p.total });
+        setHltbFetching(true);
+      }
     });
 
     return () => {
       unlisten.then((fn) => fn());
+      unlistenHltb.then((fn) => fn());
     };
   }, []);
+
+  // Refresh HLTB cache periodically only while fetching
+  useEffect(() => {
+    if (!hltbFetching) return;
+    const interval = setInterval(() => {
+      getHltbCache().then(setHltbCache).catch(() => {});
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [hltbFetching]);
+
+  function buildPlaytimeMap(games: OwnedGame[]) {
+    const map: Record<string, number> = {};
+    for (const g of games) {
+      map[String(g.appid)] = g.playtime_hours;
+    }
+    setPlaytimeMap(map);
+  }
 
   async function initialize() {
     try {
@@ -122,7 +165,8 @@ export default function App() {
     setError(null);
     try {
       setSyncState({ step: "Fetching library", detail: "Getting your games from Steam...", current: 0, total: 0, eta: "" });
-      await fetchLibrary();
+      const library = await fetchLibrary();
+      buildPlaytimeMap(library);
 
       setSyncState({ step: "Fetching details", detail: "Loading store data for each game...", current: 0, total: 0, eta: "" });
       await fetchStoreDetails();
@@ -132,6 +176,10 @@ export default function App() {
       setClassifications(results);
 
       setPhase("ready");
+
+      // Start HLTB background fetch after sync
+      setHltbFetching(true);
+      fetchHltbData().catch(() => setHltbFetching(false));
     } catch (e) {
       const msg = String(e);
       if (msg.includes("cancelled")) {
@@ -155,7 +203,8 @@ export default function App() {
     setError(null);
     try {
       setSyncState({ step: "Fetching library", detail: "Refreshing your games...", current: 0, total: 0, eta: "" });
-      await fetchLibrary();
+      const library = await fetchLibrary();
+      buildPlaytimeMap(library);
 
       setSyncState({ step: "Fetching details", detail: "Updating store data...", current: 0, total: 0, eta: "" });
       await fetchStoreDetails();
@@ -165,6 +214,10 @@ export default function App() {
       setClassifications(results);
 
       setPhase("ready");
+
+      // Start HLTB background fetch after resync
+      setHltbFetching(true);
+      fetchHltbData().catch(() => setHltbFetching(false));
     } catch (e) {
       const msg = String(e);
       if (msg.includes("cancelled")) {
@@ -278,6 +331,10 @@ export default function App() {
         <main className="flex-1 overflow-hidden">
           <GameGrid
             games={filteredGames}
+            hltbCache={hltbCache}
+            hltbFetching={hltbFetching}
+            hltbProgress={hltbProgress}
+            playtimeMap={playtimeMap}
             onOverrideChange={async () => {
               const results = await classifyGames();
               setClassifications(results);
