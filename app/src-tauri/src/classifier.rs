@@ -332,11 +332,13 @@ mod tests {
             name: "Some DLC".into(),
             playtime_hours: 0.0,
             achievements: None,
+            ..Default::default()
         };
         let store = StoreDetails {
             app_type: "dlc".into(),
             genres: vec![],
             categories: vec![],
+            ..Default::default()
         };
         let (cat, _) = classify_by_rules(&game, Some(&store));
         assert_eq!(cat, Category::NotAGame);
@@ -349,6 +351,7 @@ mod tests {
             name: "Half-Life Dedicated Server".into(),
             playtime_hours: 0.0,
             achievements: None,
+            ..Default::default()
         };
         let (cat, _) = classify_by_rules(&game, None);
         assert_eq!(cat, Category::NotAGame);
@@ -361,11 +364,13 @@ mod tests {
             name: "Some Shooter".into(),
             playtime_hours: 10.0,
             achievements: None,
+            ..Default::default()
         };
         let store = StoreDetails {
             app_type: "game".into(),
             genres: vec!["Action".into()],
             categories: vec!["Multi-player".into()],
+            ..Default::default()
         };
         let (cat, _) = classify_by_rules(&game, Some(&store));
         assert_eq!(cat, Category::Endless);
@@ -378,11 +383,13 @@ mod tests {
             name: "Portal 3".into(),
             playtime_hours: 0.0,
             achievements: None,
+            ..Default::default()
         };
         let store = StoreDetails {
             app_type: "game".into(),
             genres: vec!["Puzzle".into()],
             categories: vec!["Single-player".into()],
+            ..Default::default()
         };
         let (cat, _) = classify_by_rules(&game, Some(&store));
         assert_eq!(cat, Category::InProgress);
