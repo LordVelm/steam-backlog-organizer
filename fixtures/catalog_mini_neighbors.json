@@ -1,0 +1,112 @@
+{
+  "1145360": [
+    {
+      "appid": 588650,
+      "name": "Dead Cells"
+    },
+    {
+      "appid": 250900,
+      "name": "The Binding of Isaac: Rebirth"
+    },
+    {
+      "appid": 646570,
+      "name": "Slay the Spire"
+    },
+    {
+      "appid": 1253920,
+      "name": "Rogue Legacy 2"
+    },
+    {
+      "appid": 814380,
+      "name": "Sekiro™: Shadows Die Twice - GOTY Edition"
+    }
+  ],
+  "413150": [
+    {
+      "appid": 666140,
+      "name": "My Time at Portia"
+    },
+    {
+      "appid": 1158160,
+      "name": "Coral Island"
+    },
+    {
+      "appid": 294100,
+      "name": "RimWorld"
+    },
+    {
+      "appid": 105600,
+      "name": "Terraria"
+    },
+    {
+      "appid": 4000,
+      "name": "Garry's Mod"
+    }
+  ],
+  "1245620": [
+    {
+      "appid": 570940,
+      "name": "DARK SOULS™: REMASTERED"
+    },
+    {
+      "appid": 814380,
+      "name": "Sekiro™: Shadows Die Twice - GOTY Edition"
+    },
+    {
+      "appid": 292030,
+      "name": "The Witcher 3: Wild Hunt"
+    },
+    {
+      "appid": 1091500,
+      "name": "Cyberpunk 2077"
+    },
+    {
+      "appid": 1145360,
+      "name": "Hades"
+    }
+  ],
+  "730": [
+    {
+      "appid": 578080,
+      "name": "PUBG: BATTLEGROUNDS"
+    },
+    {
+      "appid": 1938090,
+      "name": "Call of Duty®"
+    },
+    {
+      "appid": 289070,
+      "name": "Sid Meier’s Civilization® VI"
+    },
+    {
+      "appid": 4000,
+      "name": "Garry's Mod"
+    },
+    {
+      "appid": 236850,
+      "name": "Europa Universalis IV"
+    }
+  ],
+  "281990": [
+    {
+      "appid": 294100,
+      "name": "RimWorld"
+    },
+    {
+      "appid": 236850,
+      "name": "Europa Universalis IV"
+    },
+    {
+      "appid": 255710,
+      "name": "Cities: Skylines"
+    },
+    {
+      "appid": 105600,
+      "name": "Terraria"
+    },
+    {
+      "appid": 289070,
+      "name": "Sid Meier’s Civilization® VI"
+    }
+  ]
+}
