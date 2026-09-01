@@ -12,8 +12,15 @@ node_modules/
 dist/
 build/
 app/src-tauri/target/
-package-lock.json
+
 
 # Personal
 linkedin-*.md
 .gstack/
+
+# Taste engine bundled resources (rebuilt via scripts/build_catalog.py; not in git)
+app/src-tauri/resources/catalog.gkc
+app/src-tauri/resources/potion-base-8M/
+.claude/
+scripts/.hf_cache/
+scripts/venv/
