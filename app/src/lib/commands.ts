@@ -13,6 +13,10 @@ export interface OwnedGame {
   appid: number;
   name: string;
   playtime_hours: number;
+  /** Hours played in the last two weeks (0 when not playing). */
+  playtime_2weeks_hours: number;
+  /** Unix timestamp of last play session; 0 = never played / unknown. */
+  rtime_last_played: number;
   achievements?: {
     total: number;
     achieved: number;
@@ -114,6 +118,23 @@ export function writeToSteam(accountPath: string): Promise<void> {
 export interface SetupStatus {
   modelReady: boolean;
   serverReady: boolean;
+  /** Id of the active model tier, null when none installed. */
+  activeTier: string | null;
+}
+
+export interface ModelTierInfo {
+  id: string;
+  label: string;
+  sizeBytes: number;
+  installed: boolean;
+  active: boolean;
+  recommended: boolean;
+}
+
+export interface ModelTiersResponse {
+  tiers: ModelTierInfo[];
+  vramMb: number | null;
+  ramMb: number;
 }
 
 export interface DownloadProgress {
@@ -151,8 +172,28 @@ export function checkAiSetup(): Promise<SetupStatus> {
   return invoke("check_ai_setup");
 }
 
-export function setupAi(): Promise<void> {
-  return invoke("setup_ai");
+/** Download llama-server + the given tier's model (default: recommended tier). */
+export function setupAi(tier?: string): Promise<void> {
+  return invoke("setup_ai", { tier });
+}
+
+export function getModelTiers(): Promise<ModelTiersResponse> {
+  return invoke("get_model_tiers");
+}
+
+/** Switch the active (already-installed) tier; restarts the AI server. */
+export function setModelTier(tier: string): Promise<void> {
+  return invoke("set_model_tier", { tier });
+}
+
+/** Delete a tier's model file to free disk space. */
+export function deleteModelTier(tier: string): Promise<void> {
+  return invoke("delete_model_tier", { tier });
+}
+
+/** LLM-written taste profile prose. Rejects with AI_NOT_READY when no model. */
+export function getTasteProse(): Promise<string> {
+  return invoke("get_taste_prose");
 }
 
 export function getGpuStatus(): Promise<GpuStatus> {
@@ -234,6 +275,164 @@ export function getHltbCache(): Promise<Record<string, HltbEntry>> {
 
 export function fetchHltbData(): Promise<void> {
   return invoke("fetch_hltb_data");
+}
+
+/** Cached library with no freshness check and no network fallback — for
+ *  hydrating playtime display on cold start. Empty array when no cache. */
+export function getCachedLibrary(): Promise<OwnedGame[]> {
+  return invoke("get_cached_library");
+}
+
+/** Backfill v2 store fields (descriptions etc.) for pre-taste-engine cache
+ *  entries. Runs silently in the background; no-ops when nothing is missing. */
+export function backfillStoreDetails(): Promise<void> {
+  return invoke("backfill_store_details");
+}
+
+// -- Taste engine --
+
+export interface TasteSetupStatus {
+  catalogInstalled: boolean;
+  /** yyyymmdd of the catalog's source dataset, e.g. 20260901. */
+  catalogDatasetDate: number | null;
+  catalogGameCount: number | null;
+  embedModelInstalled: boolean;
+  loading: boolean;
+}
+
+export interface TagAffinity {
+  tag: string;
+  /** 0-1, top tag = 1. */
+  weight: number;
+  exampleAppids: number[];
+}
+
+export interface AnchorGame {
+  appid: number;
+  name: string;
+  weight: number;
+}
+
+export interface BouncedGame {
+  appid: number;
+  name: string;
+  playtimeHours: number;
+  lastPlayed: number;
+  kind: "bounced" | "abandoned";
+}
+
+export interface AntiCluster {
+  label: string;
+  tags: string[];
+  bounced: BouncedGame[];
+  /** 0-1, saturates at 6 effective bounces. */
+  strength: number;
+}
+
+export interface TasteProfile {
+  topTags: TagAffinity[];
+  anchorGames: AnchorGame[];
+  antiClusters: AntiCluster[];
+  signalCount: number;
+  confidence: "low" | "medium" | "high";
+  computedAt: number;
+}
+
+export interface DiscoverFilters {
+  minReviewPct?: number;
+  minReviews?: number;
+  requirePrice?: boolean;
+  releasedAfterYear?: number;
+  releasedBeforeYear?: number;
+  includeAdult?: boolean;
+  excludeOwned?: boolean;
+}
+
+export interface DiscoverItem {
+  appid: number;
+  name: string;
+  score: number;
+  simScore: number;
+  reviewPct: number;
+  reviewTotal: number;
+  releaseYear: number;
+  isFree: boolean;
+  tags: string[];
+  reason: string;
+  warning: string | null;
+}
+
+export interface SimilarGame {
+  appid: number;
+  name: string;
+  similarity: number;
+  tags: string[];
+  reviewPositivePct: number;
+  reviewTotal: number;
+  /** Cross-genre find — primary tag differs from the source game's. */
+  nonObvious: boolean;
+  owned: boolean;
+}
+
+export interface TasteFit {
+  /** 0-1 taste similarity. */
+  fitScore: number;
+  matchedTags: string[];
+  nearestAnchors: string[];
+  warning: string | null;
+}
+
+export function checkTasteSetup(): Promise<TasteSetupStatus> {
+  return invoke("check_taste_setup");
+}
+
+export function getTasteProfile(force?: boolean): Promise<TasteProfile> {
+  return invoke("get_taste_profile", { force });
+}
+
+export function getDiscoverFeed(filters?: DiscoverFilters): Promise<DiscoverItem[]> {
+  return invoke("get_discover_feed", { filters });
+}
+
+export function getSimilarGames(appid: number, count?: number): Promise<SimilarGame[]> {
+  return invoke("get_similar_games", { appid, count });
+}
+
+export function getGameTasteFit(appid: number): Promise<TasteFit> {
+  return invoke("get_game_taste_fit", { appid });
+}
+
+export interface WishlistScoredItem {
+  appid: number;
+  name: string;
+  score: number;
+  simScore: number;
+  reviewPct: number;
+  reviewTotal: number;
+  releaseYear: number;
+  tags: string[];
+  reason: string;
+  warning: string | null;
+  priority: number;
+  dateAdded: number;
+  /** Not in the catalog — shown unranked at the bottom. */
+  unscored: boolean;
+}
+
+/** Wishlist ranked by taste match. Rejects with WISHLIST_EMPTY_OR_PRIVATE when
+ *  the profile is private or the wishlist is empty. Cached for 1h unless refresh. */
+export function getWishlistScored(refresh?: boolean): Promise<WishlistScoredItem[]> {
+  return invoke("get_wishlist_scored", { refresh });
+}
+
+/** Fires once the catalog + embed model finish loading at startup.
+ *  Payload: whether the catalog loaded successfully. */
+export function onTasteReady(
+  callback: (catalogOk: boolean) => void
+): Promise<UnlistenFn> {
+  return listen<boolean>("taste-ready", (event) => {
+    callback(event.payload);
+  });
 }
 
 export function onHltbComplete(

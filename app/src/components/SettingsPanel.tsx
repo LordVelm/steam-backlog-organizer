@@ -7,11 +7,15 @@ import {
   setupAi,
   getGpuStatus,
   setGpuEnabled,
+  getModelTiers,
+  setModelTier,
+  deleteModelTier,
   onDownloadProgress,
   exportJson,
   SetupStatus,
   GpuStatus,
   DownloadProgress,
+  ModelTiersResponse,
 } from "../lib/commands";
 
 interface Props {
@@ -36,6 +40,7 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
   // AI state
   const [aiSetup, setAiSetup] = useState<SetupStatus | null>(null);
   const [gpuStatus, setGpuStatus] = useState<GpuStatus | null>(null);
+  const [tiers, setTiers] = useState<ModelTiersResponse | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] =
     useState<DownloadProgress | null>(null);
@@ -65,6 +70,12 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
     } catch {
       // not available
     }
+
+    try {
+      setTiers(await getModelTiers());
+    } catch {
+      // not available
+    }
   }
 
   async function handleSave() {
@@ -82,20 +93,43 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
     setSaving(false);
   }
 
-  async function handleSetupAi() {
+  async function handleSetupAi(tier?: string) {
     setDownloading(true);
     setDownloadProgress(null);
     setError(null);
     try {
-      await setupAi();
-      const setup = await checkAiSetup();
-      setAiSetup(setup);
-      const gpu = await getGpuStatus();
-      setGpuStatus(gpu);
+      await setupAi(tier);
+      await refreshAiState();
     } catch (e) {
       setError(String(e));
     }
     setDownloading(false);
+  }
+
+  async function refreshAiState() {
+    setAiSetup(await checkAiSetup());
+    setGpuStatus(await getGpuStatus());
+    setTiers(await getModelTiers());
+  }
+
+  async function handleActivateTier(tier: string) {
+    setError(null);
+    try {
+      await setModelTier(tier);
+      await refreshAiState();
+    } catch (e) {
+      setError(String(e));
+    }
+  }
+
+  async function handleDeleteTier(tier: string) {
+    setError(null);
+    try {
+      await deleteModelTier(tier);
+      await refreshAiState();
+    } catch (e) {
+      setError(String(e));
+    }
   }
 
   async function handleGpuToggle(enabled: boolean) {
@@ -188,97 +222,128 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
               AI Assistant
             </h3>
             <div className="space-y-3">
-              {aiReady ? (
-                <>
-                  {/* AI is ready */}
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-2 h-2 rounded-full bg-green-400" />
-                    <span className="text-steam-text-dim">
-                      AI ready
-                      {gpuStatus?.usingGpu
-                        ? " (GPU accelerated)"
-                        : " (CPU mode)"}
-                    </span>
-                  </div>
+              <div className="text-xs text-steam-text-dim">
+                Optional — adds conversational chat and a written taste profile.
+                Recommendations, Discover, and wishlist scoring work without any
+                model. Everything runs locally.
+                {tiers?.vramMb
+                  ? ` Detected ${(tiers.vramMb / 1024).toFixed(0)} GB VRAM.`
+                  : " No discrete GPU detected — small models run on CPU."}
+              </div>
 
-                  {/* GPU toggle */}
-                  {gpuStatus?.gpuDetected && gpuStatus?.cudaBuild ? (
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={gpuStatus.usingGpu}
-                        onChange={(e) => handleGpuToggle(e.target.checked)}
-                        className="rounded border-steam-border"
-                      />
-                      <span className="text-sm text-steam-text">
-                        Use GPU acceleration
-                      </span>
-                    </label>
-                  ) : gpuStatus && !gpuStatus.gpuDetected ? (
-                    <div className="flex items-center gap-2 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-yellow-400" />
-                      <span className="text-steam-text-dim">
-                        No discrete GPU detected — running on CPU (slower but fully functional)
-                      </span>
-                    </div>
-                  ) : null}
-
+              {/* No-AI row */}
+              <div
+                className={`flex items-center justify-between px-3 py-2 rounded-lg border ${
+                  aiSetup && !aiSetup.activeTier
+                    ? "border-steam-blue/60 bg-steam-surface-light"
+                    : "border-steam-border"
+                }`}
+              >
+                <div>
+                  <div className="text-sm text-steam-text">No AI model</div>
                   <div className="text-xs text-steam-text-dim">
-                    Powers game recommendations and classification second
-                    opinions. Everything runs locally on your machine.
-                    {gpuStatus?.usingGpu
-                      ? " Using your GPU for faster inference."
-                      : gpuStatus?.gpuDetected
-                        ? " GPU available but currently using CPU."
-                        : ""}
+                    Taste engine only — instant, zero download
                   </div>
-                </>
-              ) : downloading ? (
-                <>
-                  {/* Download in progress */}
-                  {downloadProgress ? (
-                    <div>
-                      <p className="text-sm text-steam-text mb-2">
-                        {downloadProgress.stage}
-                      </p>
-                      <div className="w-full rounded-full h-2 bg-steam-bg">
-                        <div
-                          className="h-2 rounded-full bg-steam-blue transition-all duration-300"
-                          style={{
-                            width: `${Math.min(downloadProgress.percent, 100)}%`,
-                          }}
-                        />
-                      </div>
-                      <p className="text-xs text-steam-text-dim mt-1">
-                        {formatBytes(downloadProgress.downloaded)}
-                        {downloadProgress.total > 0 && (
-                          <> / {formatBytes(downloadProgress.total)}</>
-                        )}
-                        {" — "}
-                        {downloadProgress.percent.toFixed(0)}%
-                      </p>
+                </div>
+                {aiSetup && !aiSetup.activeTier && (
+                  <span className="text-xs text-steam-blue">active</span>
+                )}
+              </div>
+
+              {/* Tier rows */}
+              {tiers?.tiers.map((t) => (
+                <div
+                  key={t.id}
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg border ${
+                    t.active
+                      ? "border-steam-blue/60 bg-steam-surface-light"
+                      : "border-steam-border"
+                  }`}
+                >
+                  <div className="min-w-0">
+                    <div className="text-sm text-steam-text flex items-center gap-2">
+                      {t.label}
+                      {t.recommended && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] bg-steam-blue/20 text-steam-blue">
+                          recommended for your hardware
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <p className="text-sm text-steam-text-dim animate-pulse">
-                      Getting things ready...
-                    </p>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* AI not set up */}
-                  <div className="text-xs text-steam-text-dim mb-2">
-                    Download the AI model (~16 GB) to enable game
-                    recommendations and classification assistance. One-time
-                    download — everything runs locally.
+                    <div className="text-xs text-steam-text-dim">
+                      {formatBytes(t.sizeBytes)}
+                      {t.installed ? " · installed" : " download"}
+                    </div>
                   </div>
-                  <button
-                    onClick={handleSetupAi}
-                    className="py-2 px-4 rounded-lg bg-steam-blue text-sm text-white font-medium hover:bg-steam-blue-hover transition-colors"
-                  >
-                    Download AI Model
-                  </button>
-                </>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {t.active ? (
+                      <span className="text-xs text-steam-blue">active</span>
+                    ) : t.installed ? (
+                      <>
+                        <button
+                          onClick={() => handleActivateTier(t.id)}
+                          className="text-xs px-2 py-1 rounded bg-steam-blue text-white hover:bg-steam-blue-hover transition-colors"
+                        >
+                          Use
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTier(t.id)}
+                          className="text-xs px-2 py-1 rounded text-steam-text-dim hover:text-red-400 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : downloading ? (
+                      <span className="text-xs text-steam-text-dim">…</span>
+                    ) : (
+                      <button
+                        onClick={() => handleSetupAi(t.id)}
+                        className="text-xs px-2 py-1 rounded bg-steam-surface-light text-steam-text hover:text-white transition-colors"
+                      >
+                        Download
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Download progress */}
+              {downloading && downloadProgress && (
+                <div>
+                  <p className="text-sm text-steam-text mb-2">
+                    {downloadProgress.stage}
+                  </p>
+                  <div className="w-full rounded-full h-2 bg-steam-bg">
+                    <div
+                      className="h-2 rounded-full bg-steam-blue transition-all duration-300"
+                      style={{
+                        width: `${Math.min(downloadProgress.percent, 100)}%`,
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs text-steam-text-dim mt-1">
+                    {formatBytes(downloadProgress.downloaded)}
+                    {downloadProgress.total > 0 && (
+                      <> / {formatBytes(downloadProgress.total)}</>
+                    )}
+                    {" — "}
+                    {downloadProgress.percent.toFixed(0)}%
+                  </p>
+                </div>
+              )}
+
+              {/* GPU toggle (when a model is active) */}
+              {aiReady && gpuStatus?.gpuDetected && gpuStatus?.cudaBuild && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={gpuStatus.usingGpu}
+                    onChange={(e) => handleGpuToggle(e.target.checked)}
+                    className="rounded border-steam-border"
+                  />
+                  <span className="text-sm text-steam-text">
+                    Use GPU acceleration
+                  </span>
+                </label>
               )}
             </div>
           </div>
@@ -382,13 +447,12 @@ export default function SettingsPanel({ onClose, onConfigUpdated }: Props) {
                 </ul>
               </div>
               <div>
-                <div className="text-xs font-medium text-steam-text mb-1">Recommended (with AI assistant)</div>
+                <div className="text-xs font-medium text-steam-text mb-1">Optional AI chat (by model tier)</div>
                 <ul className="text-xs text-steam-text-dim space-y-0.5">
-                  <li>OS: Windows 10/11 64-bit</li>
-                  <li>RAM: 16 GB (32 GB for best performance)</li>
-                  <li>Storage: 11 GB free (AI model is ~16 GB)</li>
-                  <li>GPU: NVIDIA GPU with 12+ GB VRAM (optional, uses CUDA)</li>
-                  <li>CPU fallback: Works without GPU, responses are slower</li>
+                  <li>Standard (2.7 GB): 4 GB VRAM, or CPU with 12 GB RAM</li>
+                  <li>Plus (5 GB): 8 GB VRAM GPU</li>
+                  <li>Max (15.7 GB): 20+ GB VRAM GPU</li>
+                  <li>Taste engine, Discover &amp; wishlist scoring need no AI model at all</li>
                 </ul>
               </div>
             </div>

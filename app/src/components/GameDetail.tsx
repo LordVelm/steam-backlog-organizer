@@ -5,11 +5,17 @@ import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
   STEAM_HEADER_URL,
+  STEAM_CAPSULE_URL,
   HltbEntry,
   getAmbiguitySuggestion,
   checkAiSetup,
   AmbiguityResponse,
+  SimilarGame,
+  TasteFit,
+  getSimilarGames,
+  getGameTasteFit,
 } from "../lib/commands";
+import { open } from "@tauri-apps/plugin-shell";
 
 interface Props {
   game: Classification;
@@ -32,10 +38,25 @@ export default function GameDetail({ game, hltb, playtimeHours = 0, onClose, onO
   );
   const [aiLoading, setAiLoading] = useState(false);
   const [aiReady, setAiReady] = useState<boolean | null>(null);
+  const [tasteFit, setTasteFit] = useState<TasteFit | null>(null);
+  const [similar, setSimilar] = useState<SimilarGame[]>([]);
 
   useEffect(() => {
     checkAiSetup().then((s) => setAiReady(s.modelReady && s.serverReady)).catch(() => setAiReady(false));
-  }, []);
+    // Reset immediately so a previous game's taste data never shows under this
+    // game's header, and guard against out-of-order responses.
+    setTasteFit(null);
+    setSimilar([]);
+    let cancelled = false;
+    // Both silently unavailable when the game isn't in the catalog
+    getGameTasteFit(game.appid)
+      .then((fit) => { if (!cancelled) setTasteFit(fit); })
+      .catch(() => {});
+    getSimilarGames(game.appid, 8)
+      .then((sims) => { if (!cancelled) setSimilar(sims); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [game.appid]);
 
   async function handleAskAI() {
     setAiLoading(true);
@@ -149,6 +170,72 @@ export default function GameDetail({ game, hltb, playtimeHours = 0, onClose, onO
           <div className="mb-4 p-3 rounded-lg bg-steam-bg text-sm text-steam-text-dim">
             {game.reason}
           </div>
+
+          {/* Taste fit */}
+          {tasteFit && (
+            <div className="mb-4 p-3 rounded-lg bg-steam-bg text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-steam-blue font-mono text-xs">
+                  {Math.round(tasteFit.fitScore * 100)}% taste match
+                </span>
+                {tasteFit.matchedTags.length > 0 && (
+                  <span className="text-xs text-steam-text-dim truncate">
+                    {tasteFit.matchedTags.join(" · ")}
+                  </span>
+                )}
+              </div>
+              {tasteFit.nearestAnchors.length > 0 && (
+                <p className="text-xs text-steam-text-dim mt-1">
+                  Closest to {tasteFit.nearestAnchors.join(" and ")} in your library
+                </p>
+              )}
+              {tasteFit.warning && (
+                <p className="text-xs text-amber-400 mt-1">⚠ {tasteFit.warning}</p>
+              )}
+            </div>
+          )}
+
+          {/* More like this */}
+          {similar.length > 0 && (
+            <div className="mb-4">
+              <div className="text-[10px] text-steam-text-dim uppercase tracking-wide mb-2">
+                More like this
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {similar.map((s) => (
+                  <button
+                    key={s.appid}
+                    onClick={() => open(`https://store.steampowered.com/app/${s.appid}`)}
+                    className="shrink-0 w-32 text-left group"
+                    title={`${s.name} — ${s.reviewPositivePct}% positive`}
+                  >
+                    <div className="relative">
+                      <img
+                        src={STEAM_CAPSULE_URL(s.appid)}
+                        alt={s.name}
+                        loading="lazy"
+                        className="w-32 aspect-[184/69] object-cover rounded bg-steam-surface-light"
+                        onError={(e) => ((e.target as HTMLImageElement).style.opacity = "0.2")}
+                      />
+                      {s.owned && (
+                        <span className="absolute top-1 right-1 px-1 rounded text-[9px] bg-black/70 text-steam-text">
+                          owned
+                        </span>
+                      )}
+                      {s.nonObvious && !s.owned && (
+                        <span className="absolute top-1 right-1 px-1 rounded text-[9px] bg-steam-blue/80 text-white">
+                          unexpected
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-steam-text-dim mt-1 truncate group-hover:text-white transition-colors">
+                      {s.name}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* AI suggestion */}
           {game.confidence === "MEDIUM" && !aiSuggestion && (

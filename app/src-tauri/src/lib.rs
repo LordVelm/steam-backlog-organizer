@@ -1,10 +1,15 @@
 pub mod cache;
+pub mod catalog;
 pub mod classifier;
+pub mod embed;
+pub mod gpu;
 pub mod collections;
 pub mod config;
 pub mod hltb;
 pub mod llm;
 pub mod steam_api;
+pub mod taste;
+pub mod wishlist;
 
 use classifier::{Category, Classification};
 use llm::LlmState;
@@ -25,6 +30,12 @@ struct AppState {
     sync_cancelled: Arc<AtomicBool>,
     hltb_cancelled: Arc<AtomicBool>,
     hltb_fetching: Arc<AtomicBool>,
+    store_backfill_running: Arc<AtomicBool>,
+    // -- Taste engine (loaded in background at startup; None until ready) --
+    catalog: Mutex<Option<Arc<catalog::Catalog>>>,
+    embedder: Mutex<Option<Arc<embed::Embedder>>>,
+    taste_profile: Mutex<Option<Arc<taste::TasteProfile>>>,
+    taste_loading: Arc<AtomicBool>,
 }
 
 // -- Tauri commands --
@@ -280,19 +291,103 @@ async fn check_ai_setup(app: tauri::AppHandle) -> Result<llm::SetupStatus, Strin
     Ok(llm::check_setup(&data_dir))
 }
 
+/// Download the llama-server binary plus the given tier's model (defaults to
+/// the hardware-recommended tier, then the smallest).
 #[tauri::command]
-async fn setup_ai(app: tauri::AppHandle) -> Result<(), String> {
+async fn setup_ai(app: tauri::AppHandle, tier: Option<String>) -> Result<(), String> {
     let data_dir = llm::get_data_dir(&app);
     let status = llm::check_setup(&data_dir);
+
+    let tier = match tier.as_deref() {
+        Some(id) => llm::tier_by_id(id).ok_or_else(|| format!("unknown tier {id}"))?,
+        None => {
+            let hw = gpu::probe();
+            hw.recommended_tier
+                .as_deref()
+                .and_then(llm::tier_by_id)
+                .unwrap_or(&llm::MODEL_TIERS[0])
+        }
+    };
 
     if !status.server_ready {
         llm::download_server(&data_dir, &app).await?;
     }
-    if !status.model_ready {
-        llm::download_model(&data_dir, &app).await?;
-    }
-
+    llm::download_model(&data_dir, &app, tier).await?;
     Ok(())
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ModelTierInfo {
+    id: String,
+    label: String,
+    size_bytes: u64,
+    installed: bool,
+    active: bool,
+    recommended: bool,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ModelTiersResponse {
+    tiers: Vec<ModelTierInfo>,
+    vram_mb: Option<u64>,
+    ram_mb: u64,
+}
+
+#[tauri::command]
+fn get_model_tiers(app: tauri::AppHandle) -> ModelTiersResponse {
+    let data_dir = llm::get_data_dir(&app);
+    let hw = gpu::probe();
+    let installed = llm::installed_tier_ids(&data_dir);
+    let active = llm::active_tier(&data_dir).map(|t| t.id);
+    ModelTiersResponse {
+        tiers: llm::MODEL_TIERS
+            .iter()
+            .map(|t| ModelTierInfo {
+                id: t.id.into(),
+                label: t.label.into(),
+                size_bytes: t.size_bytes,
+                installed: installed.contains(&t.id),
+                active: active == Some(t.id),
+                recommended: hw.recommended_tier.as_deref() == Some(t.id),
+            })
+            .collect(),
+        vram_mb: hw.vram_mb,
+        ram_mb: hw.ram_mb,
+    }
+}
+
+/// Switch the active tier (must already be installed). Restarts the server.
+#[tauri::command]
+fn set_model_tier(
+    app: tauri::AppHandle,
+    state: State<'_, LlmState>,
+    tier: String,
+) -> Result<(), String> {
+    let data_dir = llm::get_data_dir(&app);
+    let t = llm::tier_by_id(&tier).ok_or_else(|| format!("unknown tier {tier}"))?;
+    if !llm::get_model_path_for(&data_dir, t).exists() {
+        return Err("Model not downloaded yet".into());
+    }
+    llm::stop_server(&state);
+    llm::set_active_tier(&data_dir, Some(t.id));
+    Ok(())
+}
+
+/// Delete one tier's model file to free disk space.
+#[tauri::command]
+fn delete_model_tier(
+    app: tauri::AppHandle,
+    state: State<'_, LlmState>,
+    tier: String,
+) -> Result<(), String> {
+    let data_dir = llm::get_data_dir(&app);
+    let t = llm::tier_by_id(&tier).ok_or_else(|| format!("unknown tier {tier}"))?;
+    if llm::active_tier(&data_dir).map(|a| a.id) == Some(t.id) {
+        llm::stop_server(&state);
+    }
+    llm::delete_model(&data_dir, t)
 }
 
 #[tauri::command]
@@ -645,7 +740,7 @@ async fn get_recommendations(
     let hltb_cache = state.hltb_cache.lock().map_err(|e| e.to_string())?.clone();
 
     // Step 1: Deterministic candidate filtering
-    let candidates: Vec<&Classification> = classifications
+    let mut candidates: Vec<&Classification> = classifications
         .iter()
         .filter(|c| c.category == Category::InProgress || c.category == Category::Endless)
         .collect();
@@ -656,6 +751,44 @@ async fn get_recommendations(
             used_llm: false,
             message: "You don't have any games in your backlog or endless categories yet.".into(),
         });
+    }
+
+    // Step 1b: Taste-ranked retrieval — order candidates by taste match blended
+    // with the message's own semantics, instead of Steam API order. Games
+    // missing from the catalog keep their relative order at the end.
+    let taste_ctx: Option<(Arc<catalog::Catalog>, Arc<taste::TasteProfile>)> = {
+        let cat = state.catalog.lock().map_err(|e| e.to_string())?.clone();
+        let profile = state.taste_profile.lock().map_err(|e| e.to_string())?.clone();
+        cat.zip(profile)
+    };
+    if let Some((cat, profile)) = &taste_ctx {
+        let query_vec = state
+            .embedder
+            .lock()
+            .ok()
+            .and_then(|g| g.clone())
+            .filter(|_| !request.message.trim().is_empty())
+            .map(|em| em.embed(&request.message));
+        let mut ranked: Vec<(f32, usize)> = candidates
+            .iter()
+            .enumerate()
+            .map(|(i, c)| {
+                let score = match cat.get(c.appid as u32) {
+                    Some((row, _)) => {
+                        let v = cat.vector_f32(row);
+                        let taste_sim = taste::dot(&profile.vector, &v);
+                        match &query_vec {
+                            Some(q) => 0.7 * taste_sim + 0.3 * taste::dot(q, &v),
+                            None => taste_sim,
+                        }
+                    }
+                    None => f32::NEG_INFINITY, // sort to the end, stable
+                };
+                (score, i)
+            })
+            .collect();
+        ranked.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
+        candidates = ranked.iter().map(|(_, i)| candidates[*i]).collect();
     }
 
     // Fewer candidates on follow-ups to reduce prompt size and speed up inference
@@ -703,25 +836,28 @@ async fn get_recommendations(
         });
     }
 
-    // Step 3: Rules-based fallback — only used when AI model is NOT downloaded
+    // Step 3: No model installed — candidates are already taste-ranked above,
+    // so the top picks ARE the recommendation. Deterministic reasons.
     let fallback: Vec<llm::GameRecommendation> = candidates
         .iter()
-        .take(40)
+        .take(3)
         .map(|c| {
             let playtime = games
                 .iter()
                 .find(|g| g.appid == c.appid)
                 .map(|g| g.playtime_hours)
                 .unwrap_or(0.0);
-            (c, playtime)
-        })
-        .collect::<Vec<_>>()
-        .into_iter()
-        .map(|(c, pt)| {
-            let reason = if pt == 0.0 {
-                "Unplayed — waiting in your backlog".into()
-            } else {
-                format!("Started but only {pt:.1}h played — might be worth revisiting")
+            let reason = match &taste_ctx {
+                Some((cat, profile)) => match cat.get(c.appid as u32) {
+                    Some((row, meta)) => {
+                        let v = cat.vector_f32(row);
+                        taste::reason_for(profile, &v, &meta.tags)
+                    }
+                    None if playtime == 0.0 => "Unplayed — waiting in your backlog".into(),
+                    None => format!("Only {playtime:.1}h played — might be worth revisiting"),
+                },
+                None if playtime == 0.0 => "Unplayed — waiting in your backlog".into(),
+                None => format!("Only {playtime:.1}h played — might be worth revisiting"),
             };
             llm::GameRecommendation {
                 appid: c.appid,
@@ -729,13 +865,17 @@ async fn get_recommendations(
                 reason,
             }
         })
-        .take(3)
         .collect();
 
+    let message = if taste_ctx.is_some() {
+        "Picked from your backlog by taste match:"
+    } else {
+        "Here are some suggestions from your backlog:"
+    };
     Ok(RecommendResponse {
         picks: fallback,
         used_llm: false,
-        message: "Here are some suggestions from your backlog:".into(),
+        message: message.into(),
     })
 }
 
@@ -906,6 +1046,707 @@ async fn fetch_hltb_data(
     Ok(())
 }
 
+/// Return the cached library without any freshness check or network fallback.
+/// Used to hydrate playtime display on cold start; empty vec when no cache.
+#[tauri::command]
+async fn get_cached_library(state: State<'_, AppState>) -> Result<Vec<steam_api::OwnedGame>, String> {
+    let cfg = config::load_config()?;
+    let games = cache::load_library_cache_any_age(&cfg.steam_id).unwrap_or_default();
+    if !games.is_empty() {
+        let mut games_lock = state.games.lock().map_err(|e| e.to_string())?;
+        if games_lock.is_empty() {
+            *games_lock = games.clone();
+        }
+    }
+    Ok(games)
+}
+
+/// Backfill v2 store fields (short_description etc.) for entries cached before
+/// the taste engine existed. Silent background task; self-checks and no-ops when
+/// nothing needs backfilling. Rate-limited like the normal store sync.
+#[tauri::command]
+async fn backfill_store_details(
+    state: State<'_, AppState>,
+    app: tauri::AppHandle,
+) -> Result<(), String> {
+    if state.store_backfill_running.swap(true, Ordering::SeqCst) {
+        return Ok(()); // already running
+    }
+
+    let to_fetch = match state.store_cache.lock() {
+        Ok(store_cache) => cache::store_entries_needing_backfill(&store_cache),
+        Err(e) => {
+            state.store_backfill_running.store(false, Ordering::SeqCst);
+            return Err(e.to_string());
+        }
+    };
+    if to_fetch.is_empty() {
+        state.store_backfill_running.store(false, Ordering::SeqCst);
+        return Ok(());
+    }
+
+    let client = state.client.clone();
+    let running = state.store_backfill_running.clone();
+    let app_handle = app.clone();
+    tokio::spawn(async move {
+        // Empty "already cached" set: these appids ARE cached, but as v1 entries
+        // we deliberately re-fetch. No progress handle — this runs silently.
+        let fetched = steam_api::fetch_store_details_batch(
+            &client,
+            &to_fetch,
+            &std::collections::HashSet::new(),
+            None,
+            None,
+        )
+        .await;
+
+        if let Ok(new_details) = fetched {
+            let updated = {
+                let app_state: tauri::State<AppState> = app_handle.state();
+                let snapshot = match app_state.store_cache.lock() {
+                    Ok(mut guard) => {
+                        guard.extend(new_details);
+                        Some(guard.clone())
+                    }
+                    Err(e) => {
+                        eprintln!("[Backfill] Failed to update store cache: {e}");
+                        None
+                    }
+                };
+                snapshot
+            };
+            if let Some(cache_snapshot) = updated {
+                if let Err(e) = cache::save_store_cache(&cache_snapshot) {
+                    eprintln!("[Backfill] Failed to save store cache: {e}");
+                }
+                use tauri::Emitter;
+                let _ = app_handle.emit("store-backfill-complete", cache_snapshot.len());
+            }
+        }
+        running.store(false, Ordering::SeqCst);
+    });
+
+    Ok(())
+}
+
+// -- Taste engine --
+
+/// Resolve the catalog file: an updated copy in app data wins over the bundled
+/// resource (future catalog-update path).
+fn catalog_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    let updated = llm::get_data_dir(app).join("catalog").join("catalog.gkc");
+    if updated.exists() {
+        return Some(updated);
+    }
+    app.path()
+        .resolve("resources/catalog.gkc", tauri::path::BaseDirectory::Resource)
+        .ok()
+        .filter(|p| p.exists())
+}
+
+fn embed_model_dir(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    app.path()
+        .resolve("resources/potion-base-8M", tauri::path::BaseDirectory::Resource)
+        .ok()
+        .filter(|p| p.join("model.safetensors").exists())
+}
+
+/// Load catalog + embedder off the main thread; emits "taste-ready" when done.
+fn load_taste_assets_background(app: tauri::AppHandle) {
+    let state: State<'_, AppState> = app.state();
+    if state.taste_loading.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let loading = state.taste_loading.clone();
+    let app_handle = app.clone();
+    std::thread::spawn(move || {
+        // catch_unwind so a panic (e.g. from a pathological catalog file) can
+        // never leave taste_loading stuck at true with no taste-ready event.
+        let handle = app_handle.clone();
+        let catalog_ok = std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || {
+            load_taste_assets(&handle)
+        }))
+        .unwrap_or_else(|_| {
+            eprintln!("[Taste] Asset loading panicked");
+            false
+        });
+        loading.store(false, Ordering::SeqCst);
+        use tauri::Emitter;
+        let _ = app_handle.emit("taste-ready", catalog_ok);
+    });
+}
+
+/// Load catalog + embedder into state; returns whether the catalog loaded.
+fn load_taste_assets(app_handle: &tauri::AppHandle) -> bool {
+    {
+        let mut catalog_ok = false;
+        if let Some(path) = catalog_path(app_handle) {
+            match catalog::Catalog::load(&path) {
+                Ok(cat) => {
+                    let state: State<'_, AppState> = app_handle.state();
+                    match state.catalog.lock() {
+                        Ok(mut guard) => {
+                            *guard = Some(Arc::new(cat));
+                            catalog_ok = true;
+                        }
+                        Err(e) => eprintln!("[Taste] Catalog mutex poisoned: {e}"),
+                    };
+                }
+                Err(e) => eprintln!("[Taste] Catalog load failed: {e}"),
+            }
+        }
+        if let Some(dir) = embed_model_dir(app_handle) {
+            match embed::Embedder::load(&dir) {
+                Ok(em) => {
+                    let state: State<'_, AppState> = app_handle.state();
+                    match state.embedder.lock() {
+                        Ok(mut guard) => *guard = Some(Arc::new(em)),
+                        Err(e) => eprintln!("[Taste] Embedder mutex poisoned: {e}"),
+                    };
+                }
+                Err(e) => eprintln!("[Taste] Embedder load failed: {e}"),
+            }
+        }
+        catalog_ok
+    }
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TasteSetupStatus {
+    catalog_installed: bool,
+    /// yyyymmdd of the catalog's source dataset, e.g. 20260901.
+    catalog_dataset_date: Option<u32>,
+    catalog_game_count: Option<u32>,
+    embed_model_installed: bool,
+    loading: bool,
+}
+
+#[tauri::command]
+fn check_taste_setup(state: State<'_, AppState>) -> Result<TasteSetupStatus, String> {
+    let catalog = state.catalog.lock().map_err(|e| e.to_string())?;
+    let embedder = state.embedder.lock().map_err(|e| e.to_string())?;
+    Ok(TasteSetupStatus {
+        catalog_installed: catalog.is_some(),
+        catalog_dataset_date: catalog.as_ref().map(|c| c.header.dataset_date),
+        catalog_game_count: catalog.as_ref().map(|c| c.header.game_count),
+        embed_model_installed: embedder.is_some(),
+        loading: state.taste_loading.load(Ordering::SeqCst),
+    })
+}
+
+/// Assemble per-game signals from everything cached locally.
+pub fn build_game_signals(
+    games: &[steam_api::OwnedGame],
+    classifications: &[Classification],
+    store_cache: &HashMap<String, steam_api::StoreDetails>,
+    hltb_cache: &HashMap<String, hltb::HltbEntry>,
+    cat: &catalog::Catalog,
+    embedder: Option<&embed::Embedder>,
+) -> Vec<taste::GameSignal> {
+    let class_by_id: HashMap<u64, &Classification> =
+        classifications.iter().map(|c| (c.appid, c)).collect();
+
+    games
+        .iter()
+        .map(|g| {
+            let category = class_by_id
+                .get(&g.appid)
+                .map(|c| c.category.clone())
+                .unwrap_or(Category::InProgress);
+            let appid_str = g.appid.to_string();
+            let hltb_main = hltb_cache
+                .get(&appid_str)
+                .and_then(|h| h.main_story_hours);
+
+            let (vector, tags) = match cat.get(g.appid as u32) {
+                Some((row, meta)) => (Some(cat.vector_f32(row)), meta.tags.clone()),
+                None => {
+                    // Not in catalog: runtime-embed from cached store text (same space)
+                    let fallback = embedder.and_then(|em| {
+                        store_cache.get(&appid_str).and_then(|d| {
+                            d.short_description.as_ref().map(|desc| {
+                                em.embed(&embed::compose_embed_text(&[], &d.genres, desc))
+                            })
+                        })
+                    });
+                    (fallback, Vec::new())
+                }
+            };
+
+            taste::GameSignal {
+                appid: g.appid,
+                name: g.name.clone(),
+                hours: g.playtime_hours,
+                hours_2weeks: g.playtime_2weeks_hours,
+                rtime_last_played: g.rtime_last_played,
+                ach_pct: g.achievements.as_ref().map(|a| a.percentage),
+                category,
+                hltb_main_hours: hltb_main,
+                vector,
+                tags,
+            }
+        })
+        .collect()
+}
+
+/// Compute (or return cached) taste profile. Recomputes when `force` is true.
+/// Async + spawn_blocking: runtime-embedding catalog-missing games and the
+/// profile math must never run on the main (webview) thread.
+#[tauri::command]
+async fn get_taste_profile(
+    state: State<'_, AppState>,
+    force: Option<bool>,
+) -> Result<taste::TasteProfile, String> {
+    if !force.unwrap_or(false) {
+        if let Some(profile) = state.taste_profile.lock().map_err(|e| e.to_string())?.as_ref() {
+            return Ok(profile.as_ref().clone());
+        }
+    }
+
+    let cat = state
+        .catalog
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("CATALOG_NOT_READY")?;
+    let embedder = state.embedder.lock().map_err(|e| e.to_string())?.clone();
+    let games = state.games.lock().map_err(|e| e.to_string())?.clone();
+    if games.is_empty() {
+        return Err("LIBRARY_NOT_LOADED".into());
+    }
+    let classifications = state.classifications.lock().map_err(|e| e.to_string())?.clone();
+    let store_cache = state.store_cache.lock().map_err(|e| e.to_string())?.clone();
+    let hltb_cache = state.hltb_cache.lock().map_err(|e| e.to_string())?.clone();
+
+    let profile = tauri::async_runtime::spawn_blocking(move || {
+        let signals = build_game_signals(
+            &games,
+            &classifications,
+            &store_cache,
+            &hltb_cache,
+            &cat,
+            embedder.as_deref(),
+        );
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
+        taste::compute_profile(&signals, now)
+    })
+    .await
+    .map_err(|e| format!("profile compute failed: {e}"))?;
+
+    *state.taste_profile.lock().map_err(|e| e.to_string())? = Some(Arc::new(profile.clone()));
+    Ok(profile)
+}
+
+#[derive(Deserialize, Default)]
+#[serde(rename_all = "camelCase", default)]
+struct DiscoverFilters {
+    min_review_pct: Option<u8>,
+    min_reviews: Option<u32>,
+    require_price: Option<bool>,
+    released_after_year: Option<u16>,
+    released_before_year: Option<u16>,
+    include_adult: Option<bool>,
+    exclude_owned: Option<bool>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DiscoverItem {
+    appid: u32,
+    name: String,
+    score: f64,
+    sim_score: f64,
+    review_pct: u8,
+    review_total: u32,
+    release_year: u16,
+    is_free: bool,
+    tags: Vec<String>,
+    reason: String,
+    warning: Option<String>,
+}
+
+#[tauri::command]
+async fn get_discover_feed(
+    state: State<'_, AppState>,
+    filters: Option<DiscoverFilters>,
+) -> Result<Vec<DiscoverItem>, String> {
+    let filters = filters.unwrap_or_default();
+    let cat = state
+        .catalog
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("CATALOG_NOT_READY")?;
+    let profile = state
+        .taste_profile
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("PROFILE_NOT_READY")?;
+    let owned: std::collections::HashSet<u32> = state
+        .games
+        .lock()
+        .map_err(|e| e.to_string())?
+        .iter()
+        .map(|g| g.appid as u32)
+        .collect();
+
+    let min_pct = filters.min_review_pct.unwrap_or(70);
+    let min_reviews = filters.min_reviews.unwrap_or(50);
+    let include_adult = filters.include_adult.unwrap_or(false);
+    let exclude_owned = filters.exclude_owned.unwrap_or(true);
+
+    // Retrieve-then-rank on a blocking thread: top-300 by taste similarity,
+    // re-ranked with quality (Bayesian-smoothed) and anti-cluster penalties.
+    let items = tauri::async_runtime::spawn_blocking(move || {
+    let pool = cat.top_matches(&profile.vector, 300, |_, m| {
+        if exclude_owned && owned.contains(&m.appid) {
+            return false;
+        }
+        if !include_adult && m.adult {
+            return false;
+        }
+        if m.review_positive_pct < min_pct || m.review_total < min_reviews {
+            return false;
+        }
+        if filters.require_price.unwrap_or(false) && m.is_free {
+            return false;
+        }
+        if let Some(after) = filters.released_after_year {
+            if m.release_year < after {
+                return false;
+            }
+        }
+        if let Some(before) = filters.released_before_year {
+            if m.release_year == 0 || m.release_year > before {
+                return false;
+            }
+        }
+        true
+    });
+
+    let mut items: Vec<DiscoverItem> = pool
+        .into_iter()
+        .map(|(row, _)| {
+            let meta = &cat.meta[row as usize];
+            let vec = cat.vector_f32(row);
+            let scored = taste::score_candidate(
+                &profile,
+                &vec,
+                meta.review_positive_pct,
+                meta.review_total,
+            );
+            DiscoverItem {
+                appid: meta.appid,
+                name: meta.name.clone(),
+                score: scored.score,
+                sim_score: scored.sim,
+                review_pct: meta.review_positive_pct,
+                review_total: meta.review_total,
+                release_year: meta.release_year,
+                is_free: meta.is_free,
+                tags: meta.tags.iter().take(5).cloned().collect(),
+                reason: taste::reason_for(&profile, &vec, &meta.tags),
+                warning: scored.warning,
+            }
+        })
+        .collect();
+    items.sort_by(|a, b| b.score.total_cmp(&a.score));
+    items.truncate(100);
+    items
+    })
+    .await
+    .map_err(|e| format!("discover scan failed: {e}"))?;
+    Ok(items)
+}
+
+#[tauri::command]
+async fn get_similar_games(
+    state: State<'_, AppState>,
+    appid: u32,
+    count: Option<usize>,
+) -> Result<Vec<taste::SimilarGame>, String> {
+    let cat = state
+        .catalog
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("CATALOG_NOT_READY")?;
+    let owned: std::collections::HashSet<u32> = state
+        .games
+        .lock()
+        .map_err(|e| e.to_string())?
+        .iter()
+        .map(|g| g.appid as u32)
+        .collect();
+
+    let (row, meta) = cat.get(appid).ok_or("GAME_NOT_IN_CATALOG")?;
+    let vec = cat.vector_f32(row);
+    let meta = meta.clone();
+    let k = count.unwrap_or(12);
+    tauri::async_runtime::spawn_blocking(move || {
+        taste::similar_games(&cat, &vec, &meta, &owned, k)
+    })
+    .await
+    .map_err(|e| format!("similar-games scan failed: {e}"))
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TasteFit {
+    /// 0-1 taste similarity.
+    fit_score: f64,
+    matched_tags: Vec<String>,
+    nearest_anchors: Vec<String>,
+    warning: Option<String>,
+}
+
+#[tauri::command]
+async fn get_game_taste_fit(state: State<'_, AppState>, appid: u32) -> Result<TasteFit, String> {
+    let cat = state
+        .catalog
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("CATALOG_NOT_READY")?;
+    let profile = state
+        .taste_profile
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("PROFILE_NOT_READY")?;
+
+    let (row, meta) = cat.get(appid).ok_or("GAME_NOT_IN_CATALOG")?;
+    let vec = cat.vector_f32(row);
+    let scored = taste::score_candidate(&profile, &vec, meta.review_positive_pct, meta.review_total);
+
+    let user_tags: std::collections::HashSet<&str> =
+        profile.top_tags.iter().map(|t| t.tag.as_str()).collect();
+    let matched_tags: Vec<String> = meta
+        .tags
+        .iter()
+        .filter(|t| user_tags.contains(t.as_str()))
+        .take(4)
+        .cloned()
+        .collect();
+
+    let mut anchors: Vec<(String, f32)> = profile
+        .anchor_games
+        .iter()
+        .filter(|a| a.weight >= 0.3 && a.appid != appid as u64)
+        .filter_map(|a| a.vector.as_ref().map(|v| (a.name.clone(), taste::dot(v, &vec))))
+        .collect();
+    anchors.sort_by(|a, b| b.1.total_cmp(&a.1));
+
+    Ok(TasteFit {
+        fit_score: scored.sim,
+        matched_tags,
+        nearest_anchors: anchors.into_iter().take(2).map(|(n, _)| n).collect(),
+        warning: scored.warning,
+    })
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct WishlistScoredItem {
+    appid: u32,
+    name: String,
+    score: f64,
+    sim_score: f64,
+    review_pct: u8,
+    review_total: u32,
+    release_year: u16,
+    tags: Vec<String>,
+    reason: String,
+    warning: Option<String>,
+    priority: u32,
+    date_added: u64,
+    /// Not in the catalog — shown unranked at the bottom.
+    unscored: bool,
+}
+
+/// Fetch (or reuse ≤1h-old cached) wishlist, join against the catalog, and
+/// score every item by taste match. Catalog misses go to an unscored bucket.
+#[tauri::command]
+async fn get_wishlist_scored(
+    state: State<'_, AppState>,
+    refresh: Option<bool>,
+) -> Result<Vec<WishlistScoredItem>, String> {
+    let cfg = config::load_config()?;
+
+    let items = if !refresh.unwrap_or(false) {
+        wishlist::load_cached(&cfg.steam_id)
+    } else {
+        None
+    };
+    let items = match items {
+        Some(items) => items,
+        None => {
+            let client = state.client.clone();
+            let fetched = wishlist::fetch_wishlist(&client, &cfg.steam_id)
+                .await
+                .map_err(|e| e.to_string())?;
+            wishlist::save_cache(&cfg.steam_id, &fetched);
+            fetched
+        }
+    };
+
+    let cat = state
+        .catalog
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("CATALOG_NOT_READY")?;
+    let profile = state
+        .taste_profile
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("PROFILE_NOT_READY")?;
+
+    let mut scored: Vec<WishlistScoredItem> = Vec::new();
+    for item in &items {
+        match cat.get(item.appid) {
+            Some((row, meta)) => {
+                let vec = cat.vector_f32(row);
+                let s = taste::score_candidate(
+                    &profile,
+                    &vec,
+                    meta.review_positive_pct,
+                    meta.review_total,
+                );
+                scored.push(WishlistScoredItem {
+                    appid: meta.appid,
+                    name: meta.name.clone(),
+                    score: s.score,
+                    sim_score: s.sim,
+                    review_pct: meta.review_positive_pct,
+                    review_total: meta.review_total,
+                    release_year: meta.release_year,
+                    tags: meta.tags.iter().take(5).cloned().collect(),
+                    reason: taste::reason_for(&profile, &vec, &meta.tags),
+                    warning: s.warning,
+                    priority: item.priority,
+                    date_added: item.date_added,
+                    unscored: false,
+                });
+            }
+            None => {
+                // Unreleased/delisted/too-new — no local name source; the UI
+                // links to the store page which shows the real title.
+                scored.push(WishlistScoredItem {
+                    appid: item.appid,
+                    name: format!("App {}", item.appid),
+                    score: 0.0,
+                    sim_score: 0.0,
+                    review_pct: 0,
+                    review_total: 0,
+                    release_year: 0,
+                    tags: Vec::new(),
+                    reason: "Not in the catalog yet (unreleased or delisted)".into(),
+                    warning: None,
+                    priority: item.priority,
+                    date_added: item.date_added,
+                    unscored: true,
+                });
+            }
+        }
+    }
+    // Scored items first (by score), unscored bucket at the bottom
+    scored.sort_by(|a, b| a.unscored.cmp(&b.unscored).then(b.score.total_cmp(&a.score)));
+    Ok(scored)
+}
+
+/// LLM-written "what your library says about you" prose. Deterministic profile
+/// data goes in; 2-3 paragraphs come out. Cached on disk keyed by a profile
+/// hash so it only regenerates when the profile meaningfully changes.
+#[tauri::command]
+async fn get_taste_prose(
+    state: State<'_, AppState>,
+    llm_state: State<'_, LlmState>,
+    app: tauri::AppHandle,
+) -> Result<String, String> {
+    use std::hash::{Hash, Hasher};
+
+    let profile = state
+        .taste_profile
+        .lock()
+        .map_err(|e| e.to_string())?
+        .clone()
+        .ok_or("PROFILE_NOT_READY")?;
+
+    // Stable hash over the parts that matter
+    let mut hasher = std::collections::hash_map::DefaultHasher::new();
+    for t in &profile.top_tags {
+        t.tag.hash(&mut hasher);
+        ((t.weight * 100.0) as u64).hash(&mut hasher);
+    }
+    for a in &profile.anchor_games {
+        a.appid.hash(&mut hasher);
+    }
+    for c in &profile.anti_clusters {
+        c.label.hash(&mut hasher);
+        c.bounced.len().hash(&mut hasher);
+    }
+    let hash = hasher.finish();
+
+    let prose_file = config::cache_dir().join("taste_prose.json");
+    if let Ok(data) = std::fs::read_to_string(&prose_file) {
+        if let Ok(cached) = serde_json::from_str::<serde_json::Value>(&data) {
+            if cached["hash"].as_u64() == Some(hash) {
+                if let Some(prose) = cached["prose"].as_str() {
+                    return Ok(prose.to_string());
+                }
+            }
+        }
+    }
+
+    let data_dir = llm::get_data_dir(&app);
+    let setup = llm::check_setup(&data_dir);
+    if !(setup.model_ready && setup.server_ready) {
+        return Err("AI_NOT_READY".into());
+    }
+    llm::start_server(&data_dir, &llm_state)?;
+    llm::wait_for_server().await?;
+
+    let facts = serde_json::json!({
+        "top_tags": profile.top_tags.iter().map(|t| &t.tag).collect::<Vec<_>>(),
+        "defining_games": profile.anchor_games.iter().map(|a| &a.name).collect::<Vec<_>>(),
+        "bounce_patterns": profile.anti_clusters.iter().map(|c| {
+            serde_json::json!({
+                "kind": c.label,
+                "dropped_games": c.bounced.iter().map(|b| &b.name).collect::<Vec<_>>(),
+            })
+        }).collect::<Vec<_>>(),
+        "played_games_count": profile.signal_count,
+    });
+    let system = "You are a perceptive games critic writing a short personal profile of a player \
+        based only on the structured facts provided. Write 2-3 short paragraphs, second person \
+        (\"you\"), specific and warm, no lists, no headers. Mention concrete games. If bounce \
+        patterns exist, note them kindly. Respond as JSON: {\"prose\": \"...\"}";
+    let response = llm::run_taste_prose_inference(system, &facts.to_string()).await?;
+
+    let parsed = serde_json::from_str::<serde_json::Value>(&response)
+        .ok()
+        .and_then(|v| v["prose"].as_str().map(String::from));
+
+    match parsed {
+        Some(prose) => {
+            // Cache only well-formed output; malformed responses regenerate next time
+            let _ = std::fs::write(
+                &prose_file,
+                serde_json::json!({"hash": hash, "prose": prose}).to_string(),
+            );
+            Ok(prose)
+        }
+        None => Err("AI_PROSE_MALFORMED".into()),
+    }
+}
+
 // -- Export/Import --
 
 #[tauri::command]
@@ -935,6 +1776,11 @@ pub fn run() {
             sync_cancelled: Arc::new(AtomicBool::new(false)),
             hltb_cancelled: Arc::new(AtomicBool::new(false)),
             hltb_fetching: Arc::new(AtomicBool::new(false)),
+            store_backfill_running: Arc::new(AtomicBool::new(false)),
+            catalog: Mutex::new(None),
+            embedder: Mutex::new(None),
+            taste_profile: Mutex::new(None),
+            taste_loading: Arc::new(AtomicBool::new(false)),
         })
         .manage(LlmState {
             server_process: Mutex::new(None),
@@ -948,6 +1794,8 @@ pub fn run() {
             if let Ok(mut guard) = llm_state.force_cpu.lock() {
                 *guard = force_cpu;
             }
+            // Load catalog + embedder off the main thread
+            load_taste_assets_background(app.handle().clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -966,6 +1814,9 @@ pub fn run() {
             write_to_steam,
             check_ai_setup,
             setup_ai,
+            get_model_tiers,
+            set_model_tier,
+            delete_model_tier,
             get_gpu_status,
             set_gpu_enabled,
             cancel_sync,
@@ -973,6 +1824,15 @@ pub fn run() {
             get_ambiguity_suggestion,
             get_hltb_cache,
             fetch_hltb_data,
+            get_cached_library,
+            backfill_store_details,
+            check_taste_setup,
+            get_taste_profile,
+            get_discover_feed,
+            get_similar_games,
+            get_game_taste_fit,
+            get_wishlist_scored,
+            get_taste_prose,
             export_json,
         ])
         .build(tauri::generate_context!())
