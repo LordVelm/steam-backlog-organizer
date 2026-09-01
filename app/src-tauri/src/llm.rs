@@ -7,15 +7,117 @@ use futures_util::StreamExt;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Manager};
 
-const MODEL_URL: &str = "https://huggingface.co/bartowski/Qwen2.5-14B-Instruct-GGUF/resolve/main/Qwen2.5-14B-Instruct-Q8_0.gguf";
-const MODEL_FILENAME: &str = "Qwen2.5-14B-Instruct-Q8_0.gguf";
 pub const LLAMA_SERVER_PORT: u16 = 39282; // Different port from debt planner (39281)
+
+/// A downloadable model tier. "No AI" is a UI concept, not a table row —
+/// the taste engine keeps the whole app functional with zero tiers installed.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelTier {
+    pub id: &'static str,
+    pub label: &'static str,
+    #[serde(skip)]
+    pub url: &'static str,
+    #[serde(skip)]
+    pub filename: &'static str,
+    pub size_bytes: u64,
+    pub min_vram_mb: u64,
+    pub min_ram_mb_cpu: u64,
+    #[serde(skip)]
+    pub ctx: u32,
+}
+
+pub const MODEL_TIERS: &[ModelTier] = &[
+    ModelTier {
+        id: "qwen3.5-4b-q4",
+        label: "Standard — Qwen3.5 4B",
+        url: "https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/main/Qwen3.5-4B-Q4_K_M.gguf",
+        filename: "Qwen3.5-4B-Q4_K_M.gguf",
+        size_bytes: 2_740_000_000,
+        min_vram_mb: 4_096,
+        min_ram_mb_cpu: 12_288,
+        ctx: 8192,
+    },
+    ModelTier {
+        id: "qwen3-8b-q4",
+        label: "Plus — Qwen3 8B",
+        url: "https://huggingface.co/unsloth/Qwen3-8B-GGUF/resolve/main/Qwen3-8B-Q4_K_M.gguf",
+        filename: "Qwen3-8B-Q4_K_M.gguf",
+        size_bytes: 5_030_000_000,
+        min_vram_mb: 8_192,
+        min_ram_mb_cpu: 16_384,
+        ctx: 16384,
+    },
+    ModelTier {
+        id: "qwen2.5-14b-q8",
+        label: "Max — Qwen2.5 14B",
+        url: "https://huggingface.co/bartowski/Qwen2.5-14B-Instruct-GGUF/resolve/main/Qwen2.5-14B-Instruct-Q8_0.gguf",
+        filename: "Qwen2.5-14B-Instruct-Q8_0.gguf",
+        size_bytes: 15_700_000_000,
+        min_vram_mb: 20_480,
+        min_ram_mb_cpu: 32_768,
+        ctx: 16384,
+    },
+];
+
+pub fn tier_by_id(id: &str) -> Option<&'static ModelTier> {
+    MODEL_TIERS.iter().find(|t| t.id == id)
+}
+
+fn ai_settings_file(data_dir: &Path) -> PathBuf {
+    data_dir.join("ai_settings.json")
+}
+
+#[derive(Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+struct AiSettings {
+    active_tier: Option<String>,
+}
+
+pub fn set_active_tier(data_dir: &Path, tier_id: Option<&str>) {
+    let settings = AiSettings {
+        active_tier: tier_id.map(String::from),
+    };
+    if let Ok(data) = serde_json::to_string_pretty(&settings) {
+        let _ = std::fs::create_dir_all(data_dir);
+        let _ = std::fs::write(ai_settings_file(data_dir), data);
+    }
+}
+
+/// Active tier, with one-time migration: pre-v4 installs have the 14B model on
+/// disk but no ai_settings.json — adopt it so nothing re-downloads.
+pub fn active_tier(data_dir: &Path) -> Option<&'static ModelTier> {
+    let file = ai_settings_file(data_dir);
+    if let Ok(data) = std::fs::read_to_string(&file) {
+        let settings: AiSettings = serde_json::from_str(&data).unwrap_or_default();
+        return settings.active_tier.as_deref().and_then(tier_by_id);
+    }
+    // Migration: no settings file yet — adopt any already-installed tier
+    // (prefer the largest, which is what a legacy install has).
+    for tier in MODEL_TIERS.iter().rev() {
+        if get_model_path_for(data_dir, tier).exists() {
+            set_active_tier(data_dir, Some(tier.id));
+            return Some(tier);
+        }
+    }
+    None
+}
+
+pub fn installed_tier_ids(data_dir: &Path) -> Vec<&'static str> {
+    MODEL_TIERS
+        .iter()
+        .filter(|t| get_model_path_for(data_dir, t).exists())
+        .map(|t| t.id)
+        .collect()
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SetupStatus {
     pub model_ready: bool,
     pub server_ready: bool,
+    #[serde(default)]
+    pub active_tier: Option<String>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -54,8 +156,13 @@ pub fn get_data_dir(app: &AppHandle) -> PathBuf {
         .expect("failed to get app data dir")
 }
 
-pub fn get_model_path(data_dir: &Path) -> PathBuf {
-    data_dir.join("models").join(MODEL_FILENAME)
+pub fn get_model_path_for(data_dir: &Path, tier: &ModelTier) -> PathBuf {
+    data_dir.join("models").join(tier.filename)
+}
+
+/// Model path for the active tier (None when no tier active/installed).
+pub fn get_model_path(data_dir: &Path) -> Option<PathBuf> {
+    active_tier(data_dir).map(|t| get_model_path_for(data_dir, t))
 }
 
 pub fn get_server_dir(data_dir: &Path) -> PathBuf {
@@ -102,9 +209,13 @@ pub fn has_cuda_build(data_dir: &Path) -> bool {
 }
 
 pub fn check_setup(data_dir: &Path) -> SetupStatus {
+    let tier = active_tier(data_dir);
     SetupStatus {
-        model_ready: get_model_path(data_dir).exists(),
+        model_ready: tier
+            .map(|t| get_model_path_for(data_dir, t).exists())
+            .unwrap_or(false),
         server_ready: get_server_path(data_dir).exists(),
+        active_tier: tier.map(|t| t.id.to_string()),
     }
 }
 
@@ -317,22 +428,41 @@ pub async fn download_server(data_dir: &Path, app: &AppHandle) -> Result<(), Str
     Ok(())
 }
 
-pub async fn download_model(data_dir: &Path, app: &AppHandle) -> Result<(), String> {
-    // Clean up old model files to free disk space
+/// Download one tier's model. Tiers coexist on disk — only stale .tmp files
+/// from interrupted downloads are cleaned, never other tiers' models.
+pub async fn download_model(data_dir: &Path, app: &AppHandle, tier: &ModelTier) -> Result<(), String> {
     let models_dir = data_dir.join("models");
-    if models_dir.exists() {
-        if let Ok(entries) = std::fs::read_dir(&models_dir) {
-            for entry in entries.flatten() {
-                let name = entry.file_name().to_string_lossy().to_string();
-                if name.ends_with(".gguf") && name != MODEL_FILENAME {
-                    let _ = std::fs::remove_file(entry.path());
-                }
+    if let Ok(entries) = std::fs::read_dir(&models_dir) {
+        for entry in entries.flatten() {
+            if entry.file_name().to_string_lossy().ends_with(".tmp") {
+                let _ = std::fs::remove_file(entry.path());
             }
         }
     }
 
-    let model_path = get_model_path(data_dir);
-    download_to_file(MODEL_URL, &model_path, app, "Downloading AI model").await
+    let model_path = get_model_path_for(data_dir, tier);
+    if !model_path.exists() {
+        download_to_file(tier.url, &model_path, app, "Downloading AI model").await?;
+    }
+    set_active_tier(data_dir, Some(tier.id));
+    Ok(())
+}
+
+/// Permanently delete one tier's model file. If it was active, activate the
+/// largest remaining installed tier (or none).
+pub fn delete_model(data_dir: &Path, tier: &ModelTier) -> Result<(), String> {
+    let path = get_model_path_for(data_dir, tier);
+    if path.exists() {
+        std::fs::remove_file(&path).map_err(|e| format!("delete model: {e}"))?;
+    }
+    if active_tier(data_dir).map(|t| t.id) == Some(tier.id) {
+        let next = MODEL_TIERS
+            .iter()
+            .rev()
+            .find(|t| get_model_path_for(data_dir, t).exists());
+        set_active_tier(data_dir, next.map(|t| t.id));
+    }
+    Ok(())
 }
 
 pub fn start_server(data_dir: &Path, state: &LlmState) -> Result<(), String> {
@@ -347,7 +477,9 @@ pub fn start_server(data_dir: &Path, state: &LlmState) -> Result<(), String> {
     }
 
     let server_path = get_server_path(data_dir);
-    let model_path = get_model_path(data_dir);
+    let tier = active_tier(data_dir)
+        .ok_or("AI not set up yet. Please download an AI model first.")?;
+    let model_path = get_model_path_for(data_dir, tier);
     let bin_dir = get_server_dir(data_dir);
 
     if !server_path.exists() || !model_path.exists() {
@@ -358,6 +490,11 @@ pub fn start_server(data_dir: &Path, state: &LlmState) -> Result<(), String> {
     let force_cpu = state.force_cpu.lock().map_err(|e| e.to_string())?;
     let gpu_layers = if has_cuda_build(data_dir) && !*force_cpu { "99" } else { "0" };
     drop(force_cpu);
+
+    // Keep server stderr in a log so GPU OOM / template errors are diagnosable
+    let log = std::fs::File::create(data_dir.join("llama-server.log"))
+        .map(Stdio::from)
+        .unwrap_or_else(|_| Stdio::null());
 
     let mut cmd = Command::new(&server_path);
     cmd.current_dir(&bin_dir)
@@ -370,10 +507,10 @@ pub fn start_server(data_dir: &Path, state: &LlmState) -> Result<(), String> {
         .arg("-ngl")
         .arg(gpu_layers)
         .arg("--ctx-size")
-        .arg("16384")
+        .arg(tier.ctx.to_string())
         .arg("--cont-batching")
         .stdout(Stdio::null())
-        .stderr(Stdio::null());
+        .stderr(log);
 
     #[cfg(windows)]
     {
@@ -454,7 +591,7 @@ pub async fn run_recommendation_inference(
          - NEVER mention appids, playtime_hours numbers, or other technical data in the \"message\" field — speak naturally as a human would"
     );
 
-    run_inference_chat(&system_prompt, user_message, history).await
+    run_inference_chat(&system_prompt, user_message, history, 0.8).await
 }
 
 /// Run inference for ambiguity classification suggestion.
@@ -485,6 +622,7 @@ async fn run_inference_chat(
     system_prompt: &str,
     user_message: &str,
     history: &[(String, String)],
+    temperature: f64,
 ) -> Result<String, String> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(120))
@@ -496,8 +634,11 @@ async fn run_inference_chat(
         LLAMA_SERVER_PORT
     );
 
-    // Build messages array: system + history + current user message
-    let mut messages = vec![serde_json::json!({"role": "system", "content": system_prompt})];
+    // Build messages array: system (when present) + history + current user message
+    let mut messages = Vec::new();
+    if !system_prompt.is_empty() {
+        messages.push(serde_json::json!({"role": "system", "content": system_prompt}));
+    }
 
     for (role, content) in history {
         messages.push(serde_json::json!({"role": role, "content": content}));
@@ -508,7 +649,7 @@ async fn run_inference_chat(
     let body = serde_json::json!({
         "model": "local",
         "messages": messages,
-        "temperature": 0.8,
+        "temperature": temperature,
         "response_format": {"type": "json_object"}
     });
 
@@ -554,7 +695,7 @@ async fn run_inference_chat(
         return Err("AI returned empty response. Try again.".to_string());
     }
 
-    let cleaned = raw
+    let cleaned = strip_think_blocks(&raw)
         .trim()
         .trim_start_matches("```json")
         .trim_start_matches("```")
@@ -567,76 +708,140 @@ async fn run_inference_chat(
 
 /// Low-level single-turn inference against the local llama-server.
 async fn run_inference_raw(prompt: &str) -> Result<String, String> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(120))
-        .build()
-        .map_err(|e| e.to_string())?;
+    // Same request path as chat, no system prompt / history, deterministic temp
+    run_inference_chat("", prompt, &[], 0.1).await
+}
 
-    let url = format!(
-        "http://127.0.0.1:{}/v1/chat/completions",
-        LLAMA_SERVER_PORT
-    );
+/// Taste-profile prose generation (creative temp, system-primed).
+pub async fn run_taste_prose_inference(system: &str, facts_json: &str) -> Result<String, String> {
+    run_inference_chat(system, facts_json, &[], 0.7).await
+}
 
-    let body = serde_json::json!({
-        "model": "local",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.1,
-        "response_format": {"type": "json_object"}
-    });
-
-    // Wait for server to be idle
-    let health_url = format!("http://127.0.0.1:{}/health", LLAMA_SERVER_PORT);
-    for _ in 0..30 {
-        if let Ok(resp) = client.get(&health_url).send().await {
-            if let Ok(health) = resp.json::<serde_json::Value>().await {
-                let status = health["status"].as_str().unwrap_or("");
-                if status == "ok" || status == "no slot available" {
-                    break;
-                }
+/// Qwen3.x hybrid-reasoning models can leak `<think>...</think>` blocks into
+/// chat completions depending on the template. Strip them defensively.
+fn strip_think_blocks(text: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    let mut rest = text;
+    while let Some(start) = rest.find("<think>") {
+        out.push_str(&rest[..start]);
+        match rest[start..].find("</think>") {
+            Some(end) => rest = &rest[start + end + "</think>".len()..],
+            None => {
+                rest = ""; // unclosed block: drop everything after <think>
             }
         }
-        tokio::time::sleep(std::time::Duration::from_secs(1)).await;
+    }
+    out.push_str(rest);
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn strips_think_blocks() {
+        assert_eq!(strip_think_blocks("hello"), "hello");
+        assert_eq!(
+            strip_think_blocks("<think>reasoning...</think>{\"a\":1}"),
+            "{\"a\":1}"
+        );
+        assert_eq!(
+            strip_think_blocks("a<think>x</think>b<think>y</think>c"),
+            "abc"
+        );
+        assert_eq!(strip_think_blocks("start<think>never closed"), "start");
     }
 
-    let http_response = client
-        .post(&url)
-        .json(&body)
-        .send()
-        .await
-        .map_err(|e| format!("Inference request failed: {}", e))?;
-
-    let response_text = http_response
-        .text()
-        .await
-        .map_err(|e| format!("Failed to read inference response: {}", e))?;
-
-    let response: serde_json::Value = serde_json::from_str(&response_text)
-        .map_err(|e| format!("Failed to parse inference response: {}. Raw: {}", e, response_text))?;
-
-    if let Some(err) = response.get("error") {
-        return Err(format!("AI server error: {}", err));
+    #[test]
+    fn tier_table_sane() {
+        assert_eq!(MODEL_TIERS.len(), 3);
+        // ascending by size, ids unique, legacy 14B keeps its exact filename
+        assert!(MODEL_TIERS.windows(2).all(|w| w[0].size_bytes < w[1].size_bytes));
+        assert_eq!(
+            MODEL_TIERS.last().unwrap().filename,
+            "Qwen2.5-14B-Instruct-Q8_0.gguf"
+        );
+        assert!(tier_by_id("qwen3.5-4b-q4").is_some());
+        assert!(tier_by_id("nope").is_none());
     }
 
-    let raw = response["choices"][0]["message"]["content"]
-        .as_str()
-        .unwrap_or("")
-        .to_string();
-
-    if raw.is_empty() {
-        return Err("AI returned empty response. Try again.".to_string());
+    fn temp_data_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "gk_llm_test_{tag}_{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(dir.join("models")).unwrap();
+        dir
     }
 
-    let cleaned = raw
-        .trim()
-        .trim_start_matches("```json")
-        .trim_start_matches("```")
-        .trim_end_matches("```")
-        .trim()
-        .to_string();
+    fn fake_model(dir: &Path, tier: &ModelTier) {
+        std::fs::write(get_model_path_for(dir, tier), b"gguf").unwrap();
+    }
 
-    Ok(cleaned)
+    #[test]
+    fn legacy_install_migration_adopts_largest_installed_tier() {
+        // Pre-v4 install: 14B gguf on disk, NO ai_settings.json.
+        // Must adopt it (never force a 15.7 GB re-download) and persist.
+        let dir = temp_data_dir("migrate");
+        fake_model(&dir, tier_by_id("qwen2.5-14b-q8").unwrap());
+
+        let adopted = active_tier(&dir).expect("migration must adopt installed tier");
+        assert_eq!(adopted.id, "qwen2.5-14b-q8");
+        assert!(ai_settings_file(&dir).exists(), "migration must persist");
+        // Second call reads the settings file, same answer
+        assert_eq!(active_tier(&dir).unwrap().id, "qwen2.5-14b-q8");
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn fresh_install_has_no_active_tier() {
+        let dir = temp_data_dir("fresh");
+        assert!(active_tier(&dir).is_none());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn delete_active_tier_hands_off_to_largest_remaining() {
+        let dir = temp_data_dir("delete");
+        let small = tier_by_id("qwen3.5-4b-q4").unwrap();
+        let big = tier_by_id("qwen2.5-14b-q8").unwrap();
+        fake_model(&dir, small);
+        fake_model(&dir, big);
+        set_active_tier(&dir, Some(big.id));
+
+        delete_model(&dir, big).unwrap();
+        assert!(!get_model_path_for(&dir, big).exists());
+        assert_eq!(
+            active_tier(&dir).map(|t| t.id),
+            Some(small.id),
+            "deleting the active tier must activate the largest remaining"
+        );
+
+        delete_model(&dir, small).unwrap();
+        assert!(active_tier(&dir).is_none(), "no tiers left → none active");
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn deleting_inactive_tier_keeps_active_untouched() {
+        let dir = temp_data_dir("delete_inactive");
+        let small = tier_by_id("qwen3.5-4b-q4").unwrap();
+        let big = tier_by_id("qwen2.5-14b-q8").unwrap();
+        fake_model(&dir, small);
+        fake_model(&dir, big);
+        set_active_tier(&dir, Some(big.id));
+
+        delete_model(&dir, small).unwrap();
+        assert_eq!(active_tier(&dir).map(|t| t.id), Some(big.id));
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }
 
 pub fn get_gpu_status(data_dir: &Path, state: &LlmState) -> GpuStatus {

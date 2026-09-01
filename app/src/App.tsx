@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  backfillStoreDetails,
   checkConfig,
   fetchLibrary,
+  getCachedLibrary,
   fetchStoreDetails,
   classifyGames,
   getClassifications,
@@ -10,17 +12,24 @@ import {
   getHltbCache,
   fetchHltbData,
   onHltbComplete,
+  onTasteReady,
+  checkTasteSetup,
+  getTasteProfile,
   Classification,
   CategoryKey,
   ConfigStatus,
   HltbEntry,
   OwnedGame,
   SyncProgress as SyncProgressEvent,
+  TasteProfile,
+  TasteSetupStatus,
 } from "./lib/commands";
 import TitleBar from "./components/TitleBar";
 import SetupScreen from "./components/SetupScreen";
 import GameGrid from "./components/GameGrid";
-import Sidebar from "./components/Sidebar";
+import Sidebar, { AppView } from "./components/Sidebar";
+import DiscoverView from "./components/DiscoverView";
+import TasteProfileView from "./components/TasteProfileView";
 import WriteToSteam from "./components/WriteToSteam";
 import SettingsPanel from "./components/SettingsPanel";
 import ChatPanel from "./components/ChatPanel";
@@ -63,6 +72,33 @@ export default function App() {
   const [hltbFetching, setHltbFetching] = useState(false);
   const [hltbProgress, setHltbProgress] = useState<{ current: number; total: number } | null>(null);
   const [playtimeMap, setPlaytimeMap] = useState<Record<string, number>>({});
+  const [view, setView] = useState<AppView>("library");
+  const [tasteSetup, setTasteSetup] = useState<TasteSetupStatus | null>(null);
+  const [tasteProfile, setTasteProfile] = useState<TasteProfile | null>(null);
+  const [tasteError, setTasteError] = useState<string | null>(null);
+
+  const tasteRetries = useRef(0);
+
+  async function refreshTasteProfile(force?: boolean) {
+    try {
+      setTasteSetup(await checkTasteSetup());
+      const profile = await getTasteProfile(force);
+      setTasteProfile(profile);
+      setTasteError(null);
+      tasteRetries.current = 0;
+    } catch (e) {
+      const msg = String(e);
+      setTasteError(msg);
+      // The taste-ready event can fire before this webview attached its
+      // listener, and library hydration races catalog loading — retry with
+      // backoff instead of relying on a one-shot event.
+      const transient = msg.includes("CATALOG_NOT_READY") || msg.includes("LIBRARY_NOT_LOADED");
+      if (transient && tasteRetries.current < 15) {
+        tasteRetries.current += 1;
+        setTimeout(() => refreshTasteProfile(force), 2000);
+      }
+    }
+  }
 
   // Track when each sync step started for ETA calculation
   const stepStartTime = useRef<number>(0);
@@ -79,6 +115,11 @@ export default function App() {
       setHltbProgress(null);
       // Reload cache after fetch completes
       getHltbCache().then(setHltbCache).catch(() => {});
+    });
+
+    // Catalog + embed model finish loading shortly after launch
+    const unlistenTaste = onTasteReady(() => {
+      refreshTasteProfile();
     });
 
     const unlisten = onSyncProgress((p: SyncProgressEvent) => {
@@ -117,6 +158,7 @@ export default function App() {
     return () => {
       unlisten.then((fn) => fn());
       unlistenHltb.then((fn) => fn());
+      unlistenTaste.then((fn) => fn());
     };
   }, []);
 
@@ -151,6 +193,16 @@ export default function App() {
       if (existing.length > 0) {
         setClassifications(existing);
         setPhase("ready");
+        // Cold start: hydrate playtime from the cached library (disk only, never network)
+        getCachedLibrary()
+          .then((games) => {
+            buildPlaytimeMap(games);
+            // Library is in backend state now — profile can compute
+            refreshTasteProfile();
+          })
+          .catch(() => {});
+        // Silently backfill v2 store fields for pre-taste-engine caches
+        backfillStoreDetails().catch(() => {});
       } else {
         setPhase("setup");
       }
@@ -176,6 +228,9 @@ export default function App() {
       setClassifications(results);
 
       setPhase("ready");
+
+      // Fresh sync data (incl. last-played times) → recompute taste profile
+      refreshTasteProfile(true);
 
       // Start HLTB background fetch after sync
       setHltbFetching(true);
@@ -320,6 +375,8 @@ export default function App() {
       <TitleBar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
+          activeView={view}
+          onViewChange={setView}
           activeCategory={activeCategory}
           onCategoryChange={setActiveCategory}
           counts={counts}
@@ -328,18 +385,37 @@ export default function App() {
           onSettings={() => setShowSettings(true)}
           onChat={() => setShowChat(true)}
         />
-        <main className="flex-1 overflow-hidden">
-          <GameGrid
-            games={filteredGames}
-            hltbCache={hltbCache}
-            hltbFetching={hltbFetching}
-            hltbProgress={hltbProgress}
-            playtimeMap={playtimeMap}
-            onOverrideChange={async () => {
-              const results = await classifyGames();
-              setClassifications(results);
-            }}
-          />
+        <main className="flex-1 overflow-hidden flex flex-col">
+          {view === "library" && (
+            <GameGrid
+              games={filteredGames}
+              hltbCache={hltbCache}
+              hltbFetching={hltbFetching}
+              hltbProgress={hltbProgress}
+              playtimeMap={playtimeMap}
+              onOverrideChange={async () => {
+                const results = await classifyGames();
+                setClassifications(results);
+                // Category overrides change taste weights — recompute
+                refreshTasteProfile(true);
+              }}
+            />
+          )}
+          {view === "discover" && (
+            <DiscoverView
+              tasteSetup={tasteSetup}
+              profileReady={tasteProfile !== null}
+              lowConfidence={tasteProfile?.confidence === "low"}
+              signalCount={tasteProfile?.signalCount ?? 0}
+            />
+          )}
+          {view === "taste" && (
+            <TasteProfileView
+              profile={tasteProfile}
+              tasteSetup={tasteSetup}
+              error={tasteError}
+            />
+          )}
         </main>
       </div>
       {showWriteToSteam && (

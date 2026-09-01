@@ -1,6 +1,6 @@
 [package]
 name = "gamekeeper"
-version = "3.2.0"
+version = "4.0.0"
 edition = "2021"
 
 [lib]
@@ -24,6 +24,14 @@ rand = "0.9"
 futures-util = "0.3"
 zip = "2"
 tauri-plugin-shell = "2"
+# Taste engine
+model2vec-rs = "0.2"
+rayon = "1"
+flate2 = "1"
+crc32fast = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = ["Win32_Graphics_Dxgi", "Win32_System_SystemInformation", "Win32_Foundation"] }
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

@@ -49,11 +49,16 @@ Collections sync across machines via Steam Cloud. No manual sorting required.
 - Manual overrides when you disagree (overrides always win)
 - Results persist between runs. Only new games get re-classified
 
-**Discover**
+**Discover** *(new in v4.0 — works fully offline, no AI model needed)*
+- **Taste Engine** — learns what you actually like from your playtime, completions, and habits
+- **Discover feed** — ~60,000 Steam games you *don't* own, ranked against your taste in milliseconds
+- **Taste Profile** — "what your library says about you": your tag signature, defining games, and the kinds of games you tend to bounce off
+- **Anti-recommendations** — "you've bounced off 4 competitive FPS games — this looks like one"
+- **Wishlist scoring** — your Steam wishlist ranked by how likely you are to actually play each game
+- **"More like this"** — similar games on every detail page, with cross-genre finds badged "unexpected"
 - **HowLongToBeat integration** — Completion time estimates for every game, fetched automatically
 - **"Short games" filter** — Slider to find games that fit the time you have tonight
-- **"What should I play next?"** — AI chat that knows your library, playtime, and how long each game takes
-- **Time-aware recommendations** — Ask "I have 2 hours" and it picks games that actually fit
+- **"What should I play next?"** — chat that knows your library, taste, playtime, and how long each game takes
 
 **Built right**
 - Dark Steam-inspired theme
@@ -77,24 +82,26 @@ You'll need a free [Steam Web API key](https://steamcommunity.com/dev/apikey) an
 
 ## Optional: Local AI
 
-Gamekeeper bundles a local AI engine (Qwen2.5-14B-Instruct) for game recommendations and classification second opinions. On first use, it downloads the model (~16 GB). No external software, no API keys, no subscriptions.
+Everything above works with **no AI model at all** — recommendations, Discover, and wishlist scoring are powered by the offline Taste Engine. An optional local LLM adds conversational chat and a written taste profile. Pick a tier that fits your hardware (Gamekeeper detects your VRAM and recommends one):
 
-The AI powers:
-- **"What should I play next?"** — Conversational chat grounded in your actual library data
-- **Ambiguity assistant** — Second opinions on games the rules aren't sure about
+| Tier | Model | Download | Runs on |
+|---|---|---|---|
+| Standard | Qwen3.5 4B | 2.7 GB | 4 GB VRAM, or CPU with 12 GB RAM |
+| Plus | Qwen3 8B | 5 GB | 8 GB VRAM |
+| Max | Qwen2.5 14B | 15.7 GB | 20+ GB VRAM |
 
-The AI is never used for core classification. Rules stay canonical. GPU acceleration is automatic with NVIDIA CUDA. CPU fallback works too (just slower).
+No external software, no API keys, no subscriptions. The AI is never used for core classification — rules stay canonical.
 
-**To set up:** Settings > AI Assistant > Download AI Model
+**To set up:** Settings > AI Assistant > pick a tier
 
 ## System Requirements
 
-| | Minimum (without AI) | Recommended (with AI) |
+| | Minimum (Taste Engine, no AI chat) | With optional AI chat |
 |---|---|---|
 | OS | Windows 10 64-bit | Windows 10/11 64-bit |
-| RAM | 4 GB | 16 GB |
-| Storage | 100 MB | 18 GB free |
-| GPU | Not required | NVIDIA GPU with 16+ GB VRAM (optional) |
+| RAM | 4 GB | 12 GB+ |
+| Storage | 200 MB | 3–16 GB free (by model tier) |
+| GPU | Not required | 4 GB+ VRAM by tier (CPU works for the smallest) |
 
 ## Good to Know
 

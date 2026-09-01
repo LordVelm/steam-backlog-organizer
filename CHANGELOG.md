@@ -2,6 +2,35 @@
 
 All notable changes to Gamekeeper will be documented in this file.
 
+## [4.0.0] - 2026-09-01
+
+The Taste Engine release. Gamekeeper now knows your taste — fully offline, no GPU, no model download required.
+
+### Added
+- **Discover view**: ranked recommendations from a bundled catalog of ~60,000 Steam games you *don't* own, scored against your taste in ~18ms. Filters for rating, review count, release window, and owned games
+- **Taste Profile view**: "what your library says about you" — tag-affinity signature, the anchor games that define it, bounce patterns, and (with an AI model installed) a written profile from your local LLM
+- **Taste engine core**: 256-dim embedding index (potion-base-8M via model2vec, pure Rust) with playtime/completion/recency-weighted taste vector, computed from your real play history in ~3ms
+- **Anti-recommendations**: detects games you bounced off (low playtime, long-abandoned) and warns you before similar purchases — "you've bounced off 4 competitive FPS games — this looks like one"
+- **Wishlist scoring**: your Steam wishlist ranked by taste match with bounce warnings (works keyless for public profiles)
+- **"More like this"** on every game: franchise-filtered, diversity-ranked similar games with cross-genre finds badged "unexpected"
+- **Taste-fit line** in game details: match percentage, shared tags, and your closest library neighbors
+- **AI model tiers**: choose None / Qwen3.5-4B (2.7 GB) / Qwen3-8B (5 GB) / Qwen2.5-14B (15.7 GB), with hardware-based recommendation (VRAM detection via nvidia-smi with DXGI fallback). The entire app is fully functional with no model installed
+- **Catalog build pipeline** (`scripts/build_catalog.py`): reproducible artifact builds from the FronkonGames Steam dataset with golden-neighbor quality checks
+- Library sync now captures last-played time and two-week playtime (powers bounce detection)
+- Store cache now keeps descriptions, Metacritic scores, review counts, developers, and release dates (versioned format with automatic background backfill)
+
+### Changed
+- AI chat candidates are now taste-ranked (blended with your message's semantics) instead of Steam API order — the model sees your 40 *best-matching* backlog games, not the first 40 alphabetically
+- With no AI model installed, chat returns deterministic taste-ranked picks instead of canned suggestions
+- Settings AI section rebuilt around model tiers with per-tier download/activate/delete
+- llama-server errors now logged to `llama-server.log` (GPU OOM and template failures were previously invisible)
+
+### Fixed
+- Downloading an AI model no longer deletes other models on disk
+- Existing 14B installs are auto-adopted as the "Max" tier on upgrade — no re-download
+- Playtime display no longer requires a fresh sync after app restart (cold-start cache hydration)
+- Qwen3-family `<think>` blocks are stripped defensively from chat responses
+
 ## [3.2.1] - 2026-04-04
 
 ### Changed

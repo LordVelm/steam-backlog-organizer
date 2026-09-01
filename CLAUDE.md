@@ -318,21 +318,26 @@ When asked to build this feature, **read `docs/HLTB_SHORT_GAMES_PLAN.md` first**
 
 ---
 
+## v4.0 Taste Engine (shipped in `feature/taste-engine`)
+
+Embedding-based taste engine — offline, zero GPU, zero model download required. Plan: `~/.claude/plans/glimmering-zooming-nautilus.md`.
+
+**Architecture:**
+- **Catalog artifact** (`app/src-tauri/resources/catalog.gkc`, ~23 MB, gitignored): ~60k Steam games, 256-dim int8 embeddings + gzipped metadata. Built by `scripts/build_catalog.py` from the **Kaggle** FronkonGames dataset (`games.json` — the HF parquet mirror has an EMPTY tags column, build aborts if tag coverage <50%). Format spec `GKC1` mirrored by `src/catalog.rs`; committed test fixture `fixtures/catalog_mini.gkc` + golden neighbors keep Python-writer/Rust-reader parity.
+- **Embeddings**: potion-base-8M via `model2vec-rs` (pure Rust, no ONNX). Runtime embedder (`src/embed.rs`) MUST match the builder's composite text format — `fixtures/embed_parity.json` test pins the cross-language contract.
+- **Taste math** (`src/taste.rs`): playtime/completion/recency-weighted taste vector; bounce/abandon detection (needs `rtime_last_played` — post-v4 sync data); anti-clusters with engagement normalization; retrieve-then-rank scoring (0.75 sim + 0.25 Bayesian review quality − anti-penalty); franchise-filtered MMR "more like this". Formulas are specced in the plan — change only with their tests.
+- **Views**: Sidebar nav Library/Discover/Taste Profile (`DiscoverView.tsx` with For You + Wishlist tabs, `TasteProfileView.tsx`); GameDetail gets taste-fit + more-like-this.
+- **Wishlist** (`src/wishlist.rs`): `IWishlistService/GetWishlist/v1` (works keyless for public profiles; returns appids only — names joined from catalog). 1h cache.
+- **Model tiers** (`src/llm.rs` + `src/gpu.rs`): None / Qwen3.5-4B Q4 (2.7 GB) / Qwen3-8B Q4 (5 GB) / Qwen2.5-14B Q8 (15.7 GB "Max"). Active tier in `<app_data>/ai_settings.json`; legacy 14B installs auto-adopt (never delete other tiers' ggufs). VRAM probe: nvidia-smi → DXGI → RAM gate. llama-server stderr → `<app_data>/llama-server.log`. Chat candidates are taste-ranked (not Steam order); with no model the top taste picks ARE the recommendation (`used_llm: false`).
+- **Store cache v2**: descriptions/metacritic/devs/release_date kept; versioned wrapper `{version: 2, details}` with legacy fallback; silent background backfill on cold start.
+- Dev sanity tool: `cargo run --example taste_sanity` (runs the whole engine against the real local caches).
+
 ## Future feature ideas
 
-Ideas from the retired `steam-game-recommender` concept that Gamekeeper doesn't cover yet:
-
-1. **Store discovery** — Recommend games the user *doesn't own* based on their taste profile. Use Steam store search by tags, SteamSpy data, or the AI's own knowledge to suggest purchases. Current chat only picks from the user's library.
-
-2. **Taste profile summary** — Surface an explicit "here's what your library says about you" analysis. E.g. "You're a completionist who loves narrative RPGs, sinks hundreds of hours into grand strategy, and bounces off multiplayer shooters." Could be a dedicated panel or part of the chat.
-
-3. **Anti-recommendations** — "You've bounced off every competitive FPS, so skip this despite the hype." Useful when the user is considering a purchase.
-
-4. **Non-obvious connections** — Find indie games that share DNA with the user's favorites beyond simple genre matching (similar mechanics, art style, narrative depth).
-
-5. **Wishlist integration** — Cross-reference the user's Steam wishlist with their taste profile and prioritize or deprioritize items.
-
-6. **macOS/Linux support** — Steam paths and userdata differ by platform. Currently Windows-only.
+1. **Delta catalog refresh** — `IStoreService/GetAppList?if_modified_since=` + appdetails/appreviews to update the catalog between releases (Phase 1.5; snapshot-per-release is fine for now).
+2. **Multi-store (GOG/Epic)** — GOG Galaxy local SQLite + Epic manifests feeding the same classifier/taste pipeline (roadmap Phase 3).
+3. **macOS/Linux / Steam Deck** — Steam paths and userdata differ by platform. Currently Windows-only (roadmap Phase 4).
+4. **Streaming chat** — llama-server supports SSE; small/CPU tiers would feel much better with token streaming.
 
 ---
 

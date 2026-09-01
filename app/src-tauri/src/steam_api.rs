@@ -11,11 +11,17 @@ const STEAM_STORE_API: &str = "https://store.steampowered.com/api/appdetails";
 const API_DELAY: Duration = Duration::from_millis(500);
 const STORE_DELAY: Duration = Duration::from_millis(300);
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct OwnedGame {
     pub appid: u64,
     pub name: String,
     pub playtime_hours: f64,
+    /// Hours played in the last two weeks (0.0 when not playing).
+    #[serde(default)]
+    pub playtime_2weeks_hours: f64,
+    /// Unix timestamp of last play session; 0 = never played / unknown.
+    #[serde(default)]
+    pub rtime_last_played: u64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub achievements: Option<AchievementInfo>,
 }
@@ -29,7 +35,7 @@ pub struct AchievementInfo {
     pub names_achieved: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct StoreDetails {
     #[serde(rename = "type")]
     pub app_type: String,
@@ -37,6 +43,17 @@ pub struct StoreDetails {
     pub genres: Vec<String>,
     #[serde(default)]
     pub categories: Vec<String>,
+    // -- v2 fields (taste engine); all optional so v1 cache entries deserialize --
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub short_description: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metacritic: Option<u32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub recommendations: Option<u64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub developers: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub release_date: Option<String>,
 }
 
 // -- Steam Web API response types --
@@ -59,6 +76,10 @@ struct RawOwnedGame {
     name: String,
     #[serde(default)]
     playtime_forever: u64,
+    #[serde(default)]
+    playtime_2weeks: u64,
+    #[serde(default)]
+    rtime_last_played: u64,
 }
 
 #[derive(Deserialize)]
@@ -141,6 +162,8 @@ pub async fn get_owned_games(
             appid: g.appid,
             name: g.name,
             playtime_hours: g.playtime_forever as f64 / 60.0,
+            playtime_2weeks_hours: g.playtime_2weeks as f64 / 60.0,
+            rtime_last_played: g.rtime_last_played,
             achievements: None,
         })
         .collect();
@@ -245,10 +268,50 @@ pub async fn fetch_store_details(client: &Client, app_id: u64) -> Option<StoreDe
         })
         .unwrap_or_default();
 
+    let short_description = info
+        .get("short_description")
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+        .map(String::from);
+
+    let metacritic = info
+        .get("metacritic")
+        .and_then(|m| m.get("score"))
+        .and_then(|v| v.as_u64())
+        .map(|s| s as u32);
+
+    let recommendations = info
+        .get("recommendations")
+        .and_then(|r| r.get("total"))
+        .and_then(|v| v.as_u64());
+
+    let developers: Vec<String> = info
+        .get("developers")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|d| d.as_str())
+                .map(String::from)
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let release_date = info
+        .get("release_date")
+        .and_then(|r| r.get("date"))
+        .and_then(|v| v.as_str())
+        .filter(|s| !s.is_empty())
+        .map(String::from);
+
     Some(StoreDetails {
         app_type,
         genres,
         categories,
+        short_description,
+        metacritic,
+        recommendations,
+        developers,
+        release_date,
     })
 }
 
